@@ -2,6 +2,7 @@
   const ORIGIN_FALLBACK = { lat: 28.3672144, lon: -82.643641, address: "14515 Giddyup Pl, Hudson, FL" };
   const LS_WATCH = "proxibid-hudson-watch-v1";
   const LS_MAX = "proxibid-hudson-maxes-v1";
+  const LS_STARS = "hudson-auction-stars-v1";
   const PAGE_SIZE = 100;
 
   const state = {
@@ -18,6 +19,7 @@
     flatLots: [],
     watch: loadJson(LS_WATCH, {}),
     maxes: loadJson(LS_MAX, {}),
+    stars: loadJson(LS_STARS, {}),
     lotSort: "lot",
     lotSortAsc: true,
     page: 0,
@@ -27,6 +29,7 @@
     subtitle: document.getElementById("subtitle"),
     scraped: document.getElementById("scraped"),
     seller: document.getElementById("f-seller"),
+    platform: document.getElementById("f-platform"),
     type: document.getElementById("f-type"),
     dist: document.getElementById("f-dist"),
     from: document.getElementById("f-from"),
@@ -52,6 +55,9 @@
     prevPageBottom: document.getElementById("prev-page-bottom"),
     nextPageBottom: document.getElementById("next-page-bottom"),
     pageLabelBottom: document.getElementById("page-label-bottom"),
+    exportFavs: document.getElementById("btn-export-favs"),
+    favAuctions: document.getElementById("fav-auctions"),
+    favLots: document.getElementById("fav-lots"),
   };
 
   let map, layer;
@@ -71,6 +77,12 @@
   }
   function saveMaxes() {
     localStorage.setItem(LS_MAX, JSON.stringify(state.maxes));
+  }
+  function saveStars() {
+    localStorage.setItem(LS_STARS, JSON.stringify(state.stars));
+  }
+  function auctionKey(a) {
+    return String(a.platform || "Proxibid") + ":" + String(a.id);
   }
   function lotKey(aid, lot) {
     return String(aid) + ":" + String(lot);
@@ -105,6 +117,9 @@
         ensureMap();
         setTimeout(() => map && map.invalidateSize(), 50);
         refreshMapPanel();
+      }
+      if (btn.dataset.tab === "favs") {
+        renderFavorites();
       }
     });
   });
@@ -143,11 +158,13 @@
   }
   function applyAuctionFilters(items) {
     const seller = els.seller.value;
+    const platform = els.platform ? els.platform.value : "";
     const type = els.type.value;
     const maxMi = Number(els.dist.value) || 50;
     const from = els.from.value;
     const to = els.to.value;
     return items.filter((a) => {
+      if (platform && a.platform !== platform) return false;
       if (seller && a.seller !== seller) return false;
       if (type && String(a.type || "").toLowerCase() !== type.toLowerCase()) return false;
       if (a.distance_mi != null && Number(a.distance_mi) > maxMi) return false;
@@ -197,7 +214,7 @@
     els.tbody.innerHTML = "";
     if (!items.length) {
       const tr = document.createElement("tr");
-      tr.innerHTML = '<td colspan="6" class="muted">No auctions match filters.</td>';
+      tr.innerHTML = '<td colspan="7" class="muted">No auctions match filters.</td>';
       els.tbody.appendChild(tr);
       return;
     }
@@ -207,14 +224,28 @@
       tr.dataset.id = a.id;
       tr.tabIndex = 0;
       if (a.id === state.selectedId) tr.classList.add("active");
-      const typeClass = String(a.type || "").toLowerCase() === "timed" ? "timed" : "live";
+      const typeClass = String(a.type || "").toLowerCase().includes("timed") || String(a.type || "").toLowerCase().includes("online")
+        ? "timed"
+        : "live";
+      const plat = a.platform || "Proxibid";
+      const platClass = plat.toLowerCase() === "hibid" ? "hibid" : "proxibid";
+      const ak = auctionKey(a);
+      const starred = !!state.stars[ak];
       tr.innerHTML =
-        `<td class="title">${escapeHtml(a.title || "")}</td>` +
+        `<td><button type="button" class="star-btn${starred ? " on" : ""}" data-act="star" title="Favorite auction">★</button></td>` +
+        `<td class="title">${escapeHtml(a.title || "")}<div style="margin-top:6px"><span class="pill ${platClass}">${escapeHtml(plat)}</span></div></td>` +
         `<td>${escapeHtml(a.seller || "")}</td>` +
         `<td>${escapeHtml(a.datetime_display || a.datetime_local || "")}</td>` +
         `<td class="muted">${escapeHtml(a.location || "")}</td>` +
         `<td class="dist">${a.distance_mi != null ? Number(a.distance_mi).toFixed(1) : "—"}</td>` +
         `<td><span class="pill ${typeClass}">${escapeHtml(a.type || "")}</span></td>`;
+      tr.querySelector('[data-act="star"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (state.stars[ak]) delete state.stars[ak];
+        else state.stars[ak] = true;
+        saveStars();
+        refreshMapPanel();
+      });
       tr.addEventListener("click", () => selectRow(a.id, true));
       tr.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -279,12 +310,14 @@
   }
 
   ["change", "input"].forEach((ev) => {
-    [els.seller, els.type, els.dist, els.from, els.to].forEach((el) => {
+    [els.seller, els.platform, els.type, els.dist, els.from, els.to].forEach((el) => {
+      if (!el) return;
       el.addEventListener(ev, refreshMapPanel);
     });
   });
   els.reset.addEventListener("click", () => {
     els.seller.value = "";
+    if (els.platform) els.platform.value = "";
     els.type.value = "";
     els.dist.value = "50";
     els.from.value = "";
@@ -305,13 +338,169 @@
 
   function bootAuctions(data) {
     state.origin = Object.assign({}, ORIGIN_FALLBACK, data.origin || {});
-    state.all = Array.isArray(data.auctions) ? data.auctions : [];
+    const prox = (Array.isArray(data.auctions) ? data.auctions : []).map((a) =>
+      Object.assign({}, a, { platform: "Proxibid", id: String(a.id) })
+    );
+    // Keep Proxibid rows; HiBid merged in mergeHiBid
+    state.all = prox.concat(state.all.filter((a) => a.platform === "HiBid"));
     state.scrapedAt = data.scraped_at || null;
     const radius = (data.filters && data.filters.radius_mi) || 50;
     els.dist.value = String(radius);
     els.subtitle.textContent =
-      `Within ${radius} mi of ${state.origin.address || "Hudson, FL"} · watch board only (no bids placed)`;
+      `Within ${radius} mi of ${state.origin.address || "Hudson, FL"} · Proxibid + HiBid · watch board only (no bids)`;
     fillSellers(state.all);
+  }
+
+  function mergeHiBid(data) {
+    if (!data) return;
+    const hib = (Array.isArray(data.auctions) ? data.auctions : []).map((a) =>
+      Object.assign({}, a, {
+        platform: "HiBid",
+        id: String(a.id),
+        datetime_local: a.datetime_local || null,
+        datetime_display: a.datetime_display || "",
+      })
+    );
+    state.all = state.all.filter((a) => a.platform !== "HiBid").concat(hib);
+    fillSellers(state.all);
+    if (document.querySelector('.tab[data-tab="map"].active')) refreshMapPanel();
+  }
+
+  function renderFavorites() {
+    if (!els.favAuctions || !els.favLots) return;
+    els.favAuctions.innerHTML = "";
+    const starred = state.all.filter((a) => state.stars[auctionKey(a)]);
+    if (!starred.length) {
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.textContent = "No starred auctions yet — tap ★ on the Auctions tab.";
+      els.favAuctions.appendChild(empty);
+    } else {
+      starred.forEach((a) => {
+        const card = document.createElement("div");
+        card.className = "fav-auction";
+        const plat = a.platform || "Proxibid";
+        const platClass = plat.toLowerCase() === "hibid" ? "hibid" : "proxibid";
+        card.innerHTML =
+          `<div class="row"><h3 class="title">${escapeHtml(a.title || "")}</h3>` +
+          `<button type="button" class="star-btn on" data-act="unstar" aria-label="Unstar">★</button></div>` +
+          `<div class="meta"><span class="pill ${platClass}">${escapeHtml(plat)}</span> · ${escapeHtml(a.seller || "")}</div>` +
+          `<div class="meta">${escapeHtml(a.datetime_display || a.datetime_local || "")}</div>` +
+          `<div class="meta">${escapeHtml(a.location || "")}` +
+          (a.distance_mi != null ? ` · ${Number(a.distance_mi).toFixed(1)} mi` : "") +
+          `</div>` +
+          `<a class="linkish" href="${escapeHtml(a.url || "#")}" target="_blank" rel="noopener noreferrer">Open catalog</a>`;
+        card.querySelector("[data-act=unstar]").addEventListener("click", () => {
+          delete state.stars[auctionKey(a)];
+          saveStars();
+          renderFavorites();
+        });
+        els.favAuctions.appendChild(card);
+      });
+    }
+
+    els.favLots.innerHTML = "";
+    const watched = state.flatLots.filter((lot) => state.watch[lotKey(lot.aid, lot.lot)]);
+    if (!watched.length) {
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.style.padding = "8px 0";
+      empty.textContent = "No watched lots yet — ★ a lot on Lots / watch.";
+      els.favLots.appendChild(empty);
+      return;
+    }
+    watched.forEach((lot) => {
+      const key = lotKey(lot.aid, lot.lot);
+      const maxVal = state.maxes[key];
+      const card = document.createElement("article");
+      card.className = "lot-card watched";
+      const st = String(lot.status || "").toLowerCase() || "open";
+      const photo = document.createElement("div");
+      photo.className = "lot-card-photo";
+      if (lot.image) {
+        const img = document.createElement("img");
+        img.src = lot.image;
+        img.alt = lot.title || "";
+        img.loading = "lazy";
+        photo.appendChild(img);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "ph";
+        ph.textContent = "No photo";
+        photo.appendChild(ph);
+      }
+      const badge = document.createElement("span");
+      badge.className = "lot-badge";
+      badge.textContent = "#" + lot.lot;
+      photo.appendChild(badge);
+      const sb = document.createElement("span");
+      sb.className = "status-badge " + st;
+      sb.textContent = lot.status || "—";
+      photo.appendChild(sb);
+      card.appendChild(photo);
+      const body = document.createElement("div");
+      body.className = "lot-card-body";
+      body.innerHTML =
+        `<h2 class="lot-card-title">${escapeHtml(lot.title || "")}</h2>` +
+        `<div class="lot-card-meta">Proxibid · aid ${escapeHtml(lot.aid)} · ${escapeHtml(lot.auctionTitle || "")}</div>` +
+        `<div class="lot-card-bid"><span>Current</span><span class="money">${escapeHtml(fmtMoney(lot.current_bid, lot.currency))}</span></div>` +
+        `<div class="lot-card-bid"><span>Hard max</span><span class="money">${maxVal != null && maxVal !== "" ? escapeHtml(fmtMoney(maxVal, "USD")) : "—"}</span></div>` +
+        `<div class="lot-card-footer"><a class="linkish" href="${escapeHtml(lot.url || "#")}" target="_blank" rel="noopener noreferrer">Open on Proxibid</a></div>`;
+      card.appendChild(body);
+      els.favLots.appendChild(card);
+    });
+  }
+
+  function exportFavorites() {
+    const auctions = state.all
+      .filter((a) => state.stars[auctionKey(a)])
+      .map((a) => ({
+        platform: a.platform,
+        id: a.id,
+        title: a.title,
+        seller: a.seller,
+        url: a.url,
+        location: a.location,
+        datetime_display: a.datetime_display || a.datetime_local,
+        distance_mi: a.distance_mi,
+      }));
+    const lots = [];
+    const keys = new Set([...Object.keys(state.watch), ...Object.keys(state.maxes)]);
+    keys.forEach((key) => {
+      const watched = !!state.watch[key];
+      const maxBid = state.maxes[key];
+      const hasMax = maxBid != null && maxBid !== "" && !Number.isNaN(Number(maxBid));
+      if (!watched && !hasMax) return;
+      const [aid, lot] = key.split(":");
+      const found = state.flatLots.find((x) => x.aid === aid && String(x.lot) === String(lot));
+      lots.push({
+        platform: "Proxibid",
+        key, aid, lot,
+        title: found ? found.title : null,
+        url: found ? found.url : null,
+        current_bid: found ? found.current_bid : null,
+        status: found ? found.status : null,
+        watched,
+        hard_max_bid_usd: hasMax ? Number(maxBid) : null,
+      });
+    });
+    const payload = {
+      exported_at: new Date().toISOString(),
+      origin: "hudson-auction-board",
+      rules: {
+        hard_max_is_ceiling: true,
+        auction_desk_never_bids_above_max: true,
+        dashboard_does_not_place_bids: true,
+      },
+      starred_auctions: auctions,
+      watched_lots: lots,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "favorites.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
   /* -------- lots / watch -------- */
@@ -687,6 +876,8 @@ function exportWatchlist() {
   }
 
   wireLotFilters();
+  if (els.exportFavs) els.exportFavs.addEventListener("click", exportFavorites);
+
 
   // Load auctions then lots
   const auctionsP = fetch("auctions.json", { cache: "no-store" })
@@ -696,6 +887,13 @@ function exportWatchlist() {
   auctionsP.then((data) => {
     if (data) bootAuctions(data);
     else els.count.textContent = "Could not load auctions.json";
+    return fetch("hibid-auctions.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((hib) => {
+        if (hib) mergeHiBid(hib);
+        else console.warn("hibid-auctions.json not loaded");
+      });
   });
 
   fetch("lots.json", { cache: "no-store" })

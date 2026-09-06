@@ -3,22 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Proxibid · Hudson watch board</title>
+  <title>Hudson auction board · Proxibid + HiBid</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="top">
     <div>
-      <h1>Proxibid · Hudson</h1>
-      <p class="sub" id="subtitle">50 mi watch board — local only, does not place bids</p>
+      <h1>Hudson auctions</h1>
+      <p class="sub" id="subtitle">Proxibid + HiBid · 50 mi · local only, does not place bids</p>
     </div>
     <div class="meta" id="scraped"></div>
   </header>
 
   <nav class="tabs" role="tablist">
     <button type="button" class="tab active" data-tab="lots" role="tab" aria-selected="true">Lots / watch</button>
-    <button type="button" class="tab" data-tab="map" role="tab" aria-selected="false">Auctions map</button>
+    <button type="button" class="tab" data-tab="map" role="tab" aria-selected="false">Auctions</button>
+    <button type="button" class="tab" data-tab="favs" role="tab" aria-selected="false">Favorites</button>
   </nav>
 
   <section id="panel-lots" class="panel active">
@@ -99,6 +100,14 @@
   <section id="panel-map" class="panel">
     <section class="filters" id="filters">
       <label>
+        Platform
+        <select id="f-platform">
+          <option value="">All</option>
+          <option value="Proxibid">Proxibid</option>
+          <option value="HiBid">HiBid</option>
+        </select>
+      </label>
+      <label>
         Seller
         <select id="f-seller"><option value="">All</option></select>
       </label>
@@ -132,6 +141,7 @@
           <table>
             <thead>
               <tr>
+                <th></th>
                 <th data-sort="title">Title</th>
                 <th data-sort="seller">Seller</th>
                 <th data-sort="datetime_local">Date / time</th>
@@ -147,10 +157,27 @@
     </main>
   </section>
 
+
+  <section id="panel-favs" class="panel">
+    <p class="banner">
+      Starred auctions and watched lots in one place. <strong>Hard max</strong> = Mark’s ceiling for Auction Desk.
+      This board does not place bids.
+    </p>
+    <div class="filters">
+      <button type="button" id="btn-export-favs" class="primary">Export favorites JSON</button>
+    </div>
+    <div class="favs-scroll">
+      <h2 class="fav-section-title">Starred auctions</h2>
+      <div id="fav-auctions" class="fav-list"></div>
+      <h2 class="fav-section-title">Watched lots</h2>
+      <div id="fav-lots" class="lots-grid fav-lots-grid"></div>
+    </div>
+  </section>
+
   <footer class="foot">
     Serve locally: <code>cd /workspace/proxibid/dashboard && python3 -m http.server 8766</code>
     → <code>http://127.0.0.1:8766/</code>.
-    Lots from <code>lots.json</code>; auctions from <code>auctions.json</code>.
+    Lots: <code>lots.json</code> (Proxibid). Auctions: <code>auctions.json</code> + <code>hibid-auctions.json</code>.
     Export writes a downloadable <code>watchlist.json</code> for Auction Desk (watched + hard maxes).
     This UI never places bids.
   </footer>
