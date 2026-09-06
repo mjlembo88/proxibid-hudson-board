@@ -74,21 +74,20 @@
       </div>
     </div>
 
-    <div class="table-scroll lots-scroll">
-      <table class="lots-table">
-        <thead>
-          <tr>
-            <th>Watch</th>
-            <th data-lsort="lot">Lot</th>
-            <th data-lsort="title">Title</th>
-            <th data-lsort="current_bid">Current</th>
-            <th data-lsort="status">Status</th>
-            <th>Hard max $</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="lots-tbody"></tbody>
-      </table>
+    <div class="lots-toolbar sort-row">
+      <label class="sort-label">
+        Sort
+        <select id="f-sort">
+          <option value="lot">Lot #</option>
+          <option value="current_bid">Current bid</option>
+          <option value="title">Title</option>
+          <option value="status">Status</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="lots-scroll">
+      <div id="lots-grid" class="lots-grid" role="list"></div>
     </div>
   </section>
 

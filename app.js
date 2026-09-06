@@ -2,7 +2,7 @@
   const ORIGIN_FALLBACK = { lat: 28.3672144, lon: -82.643641, address: "14515 Giddyup Pl, Hudson, FL" };
   const LS_WATCH = "proxibid-hudson-watch-v1";
   const LS_MAX = "proxibid-hudson-maxes-v1";
-  const PAGE_SIZE = 75;
+  const PAGE_SIZE = 24;
 
   const state = {
     all: [],
@@ -44,7 +44,8 @@
     resetLots: document.getElementById("f-reset-lots"),
     exportBtn: document.getElementById("btn-export"),
     lotCount: document.getElementById("lot-count"),
-    lotsTbody: document.getElementById("lots-tbody"),
+    lotsGrid: document.getElementById("lots-grid"),
+    sort: document.getElementById("f-sort"),
     prevPage: document.getElementById("prev-page"),
     nextPage: document.getElementById("next-page"),
     pageLabel: document.getElementById("page-label"),
@@ -355,7 +356,8 @@
       });
     }
 
-    const k = state.lotSort;
+    const k = (els.sort && els.sort.value) || state.lotSort || "lot";
+    state.lotSort = k;
     const asc = state.lotSortAsc ? 1 : -1;
     items = items.slice().sort((a, b) => {
       let va = a[k], vb = b[k];
@@ -400,15 +402,13 @@
     els.prevPage.disabled = state.page <= 0;
     els.nextPage.disabled = state.page >= pages - 1;
 
-    document.querySelectorAll(".lots-table th[data-lsort]").forEach((th) => {
-      th.classList.toggle("sorted", th.dataset.lsort === state.lotSort);
-    });
-
-    els.lotsTbody.innerHTML = "";
+    els.lotsGrid.innerHTML = "";
     if (!slice.length) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = '<td colspan="7" class="muted">No lots match filters.</td>';
-      els.lotsTbody.appendChild(tr);
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.style.padding = "24px 8px";
+      empty.textContent = "No lots match filters.";
+      els.lotsGrid.appendChild(empty);
       return;
     }
 
@@ -417,24 +417,79 @@
       const key = lotKey(lot.aid, lot.lot);
       const watched = !!state.watch[key];
       const maxVal = state.maxes[key];
-      const tr = document.createElement("tr");
-      if (watched) tr.classList.add("watched");
+      const st = String(lot.status || "").toLowerCase() || "open";
 
-      const st = String(lot.status || "").toLowerCase();
-      const thumb = lot.image
-        ? `<img class="lot-thumb" src="${escapeHtml(lot.image)}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'" />`
-        : "";
+      const card = document.createElement("article");
+      card.className = "lot-card" + (watched ? " watched" : "");
+      card.setAttribute("role", "listitem");
 
-      tr.innerHTML =
-        `<td><button type="button" class="watch-btn${watched ? " on" : ""}" data-act="watch" title="Watch">★</button></td>` +
-        `<td class="money">${escapeHtml(lot.lot)}</td>` +
-        `<td><div class="lot-title">${thumb}<div class="t"><span>${escapeHtml(lot.title || "")}</span><span class="aid">aid ${escapeHtml(lot.aid)} · ${escapeHtml(lot.auctionTitle || "")}</span></div></div></td>` +
-        `<td class="money">${fmtMoney(lot.current_bid, lot.currency)}</td>` +
-        `<td><span class="pill ${escapeHtml(st)}">${escapeHtml(lot.status || "—")}</span></td>` +
-        `<td><input class="max-input${maxVal != null && maxVal !== "" ? " has-value" : ""}" type="number" min="0" step="1" inputmode="decimal" placeholder="ceiling" data-act="max" value="${maxVal != null && maxVal !== "" ? escapeHtml(maxVal) : ""}" title="Hard max bid (USD) — Auction Desk never bids above this" aria-label="Hard max bid USD" /></td>` +
-        `<td><a class="linkish" href="${escapeHtml(lot.url || "#")}" target="_blank" rel="noopener noreferrer">Open</a></td>`;
+      const photo = document.createElement("div");
+      photo.className = "lot-card-photo";
+      if (lot.image) {
+        const img = document.createElement("img");
+        img.src = lot.image;
+        img.alt = lot.title || ("Lot " + lot.lot);
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.addEventListener("error", () => {
+          photo.innerHTML = "";
+          const ph = document.createElement("div");
+          ph.className = "ph";
+          ph.textContent = "No photo";
+          photo.appendChild(ph);
+          const badge = document.createElement("span");
+          badge.className = "lot-badge";
+          badge.textContent = "#" + lot.lot;
+          photo.appendChild(badge);
+          const sb = document.createElement("span");
+          sb.className = "status-badge " + st;
+          sb.textContent = lot.status || "—";
+          photo.appendChild(sb);
+        });
+        photo.appendChild(img);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "ph";
+        ph.textContent = "No photo";
+        photo.appendChild(ph);
+      }
+      const badge = document.createElement("span");
+      badge.className = "lot-badge";
+      badge.textContent = "#" + lot.lot;
+      photo.appendChild(badge);
+      const sb = document.createElement("span");
+      sb.className = "status-badge " + st;
+      sb.textContent = lot.status || "—";
+      photo.appendChild(sb);
+      card.appendChild(photo);
 
-      const watchBtn = tr.querySelector('[data-act="watch"]');
+      const body = document.createElement("div");
+      body.className = "lot-card-body";
+
+      const title = document.createElement("h2");
+      title.className = "lot-card-title";
+      title.textContent = lot.title || "(no title)";
+      body.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "lot-card-meta";
+      meta.textContent = "aid " + lot.aid + " · " + (lot.auctionTitle || "");
+      body.appendChild(meta);
+
+      const bid = document.createElement("div");
+      bid.className = "lot-card-bid";
+      bid.innerHTML = "<span>Current bid</span><span class=\"money\">" + escapeHtml(fmtMoney(lot.current_bid, lot.currency)) + "</span>";
+      body.appendChild(bid);
+
+      const actions = document.createElement("div");
+      actions.className = "lot-card-actions";
+
+      const watchBtn = document.createElement("button");
+      watchBtn.type = "button";
+      watchBtn.className = "watch-btn" + (watched ? " on" : "");
+      watchBtn.title = watched ? "Unwatch" : "Watch";
+      watchBtn.setAttribute("aria-label", watched ? "Unwatch lot" : "Watch lot");
+      watchBtn.textContent = "★";
       watchBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (state.watch[key]) delete state.watch[key];
@@ -442,38 +497,60 @@
         saveWatch();
         renderLots();
       });
+      actions.appendChild(watchBtn);
 
-      const maxInput = tr.querySelector('[data-act="max"]');
+      const maxWrap = document.createElement("div");
+      maxWrap.className = "max-wrap";
+      maxWrap.innerHTML = "<span>Hard max $ (ceiling)</span>";
+      const maxInput = document.createElement("input");
+      maxInput.className = "max-input" + (maxVal != null && maxVal !== "" ? " has-value" : "");
+      maxInput.type = "number";
+      maxInput.min = "0";
+      maxInput.step = "1";
+      maxInput.inputMode = "decimal";
+      maxInput.placeholder = "0";
+      maxInput.title = "Hard max bid (USD) — Auction Desk never bids above this";
+      maxInput.setAttribute("aria-label", "Hard max bid USD");
+      if (maxVal != null && maxVal !== "") maxInput.value = maxVal;
       maxInput.addEventListener("click", (e) => e.stopPropagation());
       maxInput.addEventListener("change", () => {
         const raw = maxInput.value.trim();
-        if (raw === "") {
-          delete state.maxes[key];
-        } else {
+        if (raw === "") delete state.maxes[key];
+        else {
           const n = Number(raw);
           if (Number.isNaN(n) || n < 0) {
             maxInput.value = state.maxes[key] != null ? state.maxes[key] : "";
             return;
           }
           state.maxes[key] = n;
-          // auto-watch when setting a max
           state.watch[key] = true;
           saveWatch();
         }
         saveMaxes();
         renderLots();
       });
+      maxWrap.appendChild(maxInput);
+      actions.appendChild(maxWrap);
+      body.appendChild(actions);
 
-      tr.addEventListener("dblclick", () => {
-        if (lot.url) window.open(lot.url, "_blank", "noopener,noreferrer");
-      });
+      const footer = document.createElement("div");
+      footer.className = "lot-card-footer";
+      const open = document.createElement("a");
+      open.className = "linkish";
+      open.href = lot.url || "#";
+      open.target = "_blank";
+      open.rel = "noopener noreferrer";
+      open.textContent = "Open on Proxibid";
+      footer.appendChild(open);
+      body.appendChild(footer);
 
-      frag.appendChild(tr);
+      card.appendChild(body);
+      frag.appendChild(card);
     });
-    els.lotsTbody.appendChild(frag);
+    els.lotsGrid.appendChild(frag);
   }
 
-  function exportWatchlist() {
+function exportWatchlist() {
     const items = [];
     const keys = new Set([...Object.keys(state.watch), ...Object.keys(state.maxes)]);
     keys.forEach((key) => {
@@ -529,8 +606,8 @@
       renderLots();
     };
     ["change", "input"].forEach((ev) => {
-      [els.auction, els.q, els.status, els.min, els.max, els.watched, els.hasmax].forEach((el) => {
-        el.addEventListener(ev, bump);
+      [els.auction, els.q, els.status, els.min, els.max, els.watched, els.hasmax, els.sort].forEach((el) => {
+        if (el) el.addEventListener(ev, bump);
       });
     });
     els.resetLots.addEventListener("click", () => {
@@ -541,6 +618,7 @@
       els.max.value = "";
       els.watched.checked = false;
       els.hasmax.checked = false;
+      if (els.sort) els.sort.value = "lot";
       bump();
     });
     els.exportBtn.addEventListener("click", exportWatchlist);
@@ -551,17 +629,6 @@
     els.nextPage.addEventListener("click", () => {
       state.page += 1;
       renderLots();
-    });
-    document.querySelectorAll(".lots-table th[data-lsort]").forEach((th) => {
-      th.addEventListener("click", () => {
-        const k = th.dataset.lsort;
-        if (state.lotSort === k) state.lotSortAsc = !state.lotSortAsc;
-        else {
-          state.lotSort = k;
-          state.lotSortAsc = true;
-        }
-        renderLots();
-      });
     });
   }
 
