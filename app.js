@@ -2,7 +2,7 @@
   const ORIGIN_FALLBACK = { lat: 28.3672144, lon: -82.643641, address: "14515 Giddyup Pl, Hudson, FL" };
   const LS_WATCH = "proxibid-hudson-watch-v1";
   const LS_MAX = "proxibid-hudson-maxes-v1";
-  const PAGE_SIZE = 24;
+  const PAGE_SIZE = 100;
 
   const state = {
     all: [],
@@ -49,6 +49,9 @@
     prevPage: document.getElementById("prev-page"),
     nextPage: document.getElementById("next-page"),
     pageLabel: document.getElementById("page-label"),
+    prevPageBottom: document.getElementById("prev-page-bottom"),
+    nextPageBottom: document.getElementById("next-page-bottom"),
+    pageLabelBottom: document.getElementById("page-label-bottom"),
   };
 
   let map, layer;
@@ -398,9 +401,19 @@
       " watched · " +
       maxN +
       " hard maxes";
-    els.pageLabel.textContent = "Page " + (state.page + 1) + " / " + pages;
+    const pageText = "Page " + (state.page + 1) + " / " + pages;
+    els.pageLabel.textContent = pageText;
     els.prevPage.disabled = state.page <= 0;
     els.nextPage.disabled = state.page >= pages - 1;
+    if (els.pageLabelBottom) els.pageLabelBottom.textContent = pageText;
+    if (els.prevPageBottom) {
+      els.prevPageBottom.disabled = state.page <= 0;
+      els.prevPageBottom.hidden = state.page <= 0;
+    }
+    if (els.nextPageBottom) {
+      els.nextPageBottom.disabled = state.page >= pages - 1;
+      els.nextPageBottom.hidden = state.page >= pages - 1;
+    }
 
     els.lotsGrid.innerHTML = "";
     if (!slice.length) {
@@ -625,11 +638,27 @@ function exportWatchlist() {
     els.prevPage.addEventListener("click", () => {
       state.page -= 1;
       renderLots();
+      if (els.lotsGrid) els.lotsGrid.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     els.nextPage.addEventListener("click", () => {
       state.page += 1;
       renderLots();
+      if (els.lotsGrid) els.lotsGrid.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+    if (els.prevPageBottom) {
+      els.prevPageBottom.addEventListener("click", () => {
+        state.page -= 1;
+        renderLots();
+        if (els.lotsGrid) els.lotsGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    if (els.nextPageBottom) {
+      els.nextPageBottom.addEventListener("click", () => {
+        state.page += 1;
+        renderLots();
+        if (els.lotsGrid) els.lotsGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
   }
 
   function bootLots(data) {
