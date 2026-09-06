@@ -38,6 +38,8 @@
     count: document.getElementById("count"),
     tbody: document.getElementById("tbody"),
     auction: document.getElementById("f-auction"),
+    lotPlatform: document.getElementById("f-lot-platform"),
+    lotsNote: document.getElementById("lots-note"),
     q: document.getElementById("f-q"),
     status: document.getElementById("f-status"),
     min: document.getElementById("f-min"),
@@ -84,8 +86,16 @@
   function auctionKey(a) {
     return String(a.platform || "Proxibid") + ":" + String(a.id);
   }
-  function lotKey(aid, lot) {
-    return String(aid) + ":" + String(lot);
+  function lotKey(aidOrLot, lotMaybe) {
+    // lotKey(lotObj) or lotKey(aid, lot) [Proxibid legacy] or lotKey(platform, aid, lot) via object
+    if (aidOrLot && typeof aidOrLot === "object") {
+      const lot = aidOrLot;
+      const p = lot.platform || "Proxibid";
+      if (p === "Proxibid") return String(lot.aid) + ":" + String(lot.lot);
+      return p + ":" + String(lot.aid) + ":" + String(lot.lot);
+    }
+    // legacy Proxibid aid:lot
+    return String(aidOrLot) + ":" + String(lotMaybe);
   }
   function escapeHtml(s) {
     return String(s)
@@ -400,7 +410,7 @@
     }
 
     els.favLots.innerHTML = "";
-    const watched = state.flatLots.filter((lot) => state.watch[lotKey(lot.aid, lot.lot)]);
+    const watched = state.flatLots.filter((lot) => state.watch[lotKey(lot)]);
     if (!watched.length) {
       const empty = document.createElement("div");
       empty.className = "muted";
@@ -410,7 +420,7 @@
       return;
     }
     watched.forEach((lot) => {
-      const key = lotKey(lot.aid, lot.lot);
+      const key = lotKey(lot);
       const maxVal = state.maxes[key];
       const card = document.createElement("article");
       card.className = "lot-card watched";
@@ -471,10 +481,11 @@
       const maxBid = state.maxes[key];
       const hasMax = maxBid != null && maxBid !== "" && !Number.isNaN(Number(maxBid));
       if (!watched && !hasMax) return;
-      const [aid, lot] = key.split(":");
-      const found = state.flatLots.find((x) => x.aid === aid && String(x.lot) === String(lot));
+      const found = state.flatLots.find((x) => lotKey(x) === key);
+      const aid = found ? found.aid : key.split(":").slice(-2, -1)[0];
+      const lot = found ? found.lot : key.split(":").slice(-1)[0];
       lots.push({
-        platform: "Proxibid",
+        platform: found ? found.platform : (key.startsWith("HiBid:") ? "HiBid" : "Proxibid"),
         key, aid, lot,
         title: found ? found.title : null,
         url: found ? found.url : null,
@@ -505,17 +516,42 @@
 
   /* -------- lots / watch -------- */
   function fillAuctionSelect() {
-    els.auction.innerHTML = '<option value="">All auctions (' + state.flatLots.length + " lots)</option>";
-    state.auctionMeta.forEach((a) => {
+    const plat = els.lotPlatform ? els.lotPlatform.value : "";
+    const metas = state.auctionMeta.filter((a) => !plat || a.platform === plat);
+    const visibleLots = state.flatLots.filter((l) => !plat || l.platform === plat);
+    els.auction.innerHTML =
+      '<option value="">All auctions (' + visibleLots.length + " lots)</option>";
+    metas.forEach((a) => {
       const opt = document.createElement("option");
-      opt.value = a.aid;
-      opt.textContent = a.title + " (" + a.lots.length + ")";
+      // value encodes platform|aid so HiBid/Proxibid aid collision can't confuse picker
+      opt.value = (a.platform || "Proxibid") + "|" + a.aid;
+      const n = (a.lots && a.lots.length) || a.lot_count || 0;
+      const empty = n === 0 ? " — no lots yet" : "";
+      opt.textContent =
+        (a.platform || "Proxibid") + ": " + (a.title || a.aid) + " (" + n + ")" + empty;
       els.auction.appendChild(opt);
     });
+    // note empty HiBid catalogs
+    if (els.lotsNote) {
+      const emptyAids = state.auctionMeta.filter(
+        (a) => a.platform === "HiBid" && (!(a.lots && a.lots.length) || a.lot_count === 0)
+      );
+      if (emptyAids.length) {
+        els.lotsNote.hidden = false;
+        els.lotsNote.textContent =
+          "HiBid aid " +
+          emptyAids.map((a) => a.aid).join(", ") +
+          ": API returned 0 lots (may not be published yet).";
+      } else {
+        els.lotsNote.hidden = true;
+        els.lotsNote.textContent = "";
+      }
+    }
   }
 
   function filteredLots() {
-    const aid = els.auction.value;
+    const auctionVal = els.auction.value;
+    const platFilter = els.lotPlatform ? els.lotPlatform.value : "";
     const q = (els.q.value || "").trim().toLowerCase();
     const status = (els.status.value || "").toLowerCase();
     const min = els.min.value === "" ? null : Number(els.min.value);
@@ -524,7 +560,16 @@
     const hasMax = els.hasmax.checked;
 
     let items = state.flatLots;
-    if (aid) items = items.filter((x) => x.aid === aid);
+    if (platFilter) items = items.filter((x) => x.platform === platFilter);
+    if (auctionVal) {
+      const parts = auctionVal.split("|");
+      if (parts.length === 2) {
+        const [p, aid] = parts;
+        items = items.filter((x) => x.platform === p && x.aid === aid);
+      } else {
+        items = items.filter((x) => x.aid === auctionVal);
+      }
+    }
     if (q) {
       items = items.filter(
         (x) =>
@@ -540,10 +585,10 @@
     if (max != null && !Number.isNaN(max)) {
       items = items.filter((x) => x.current_bid != null && Number(x.current_bid) <= max);
     }
-    if (watchedOnly) items = items.filter((x) => state.watch[lotKey(x.aid, x.lot)]);
+    if (watchedOnly) items = items.filter((x) => state.watch[lotKey(x)]);
     if (hasMax) {
       items = items.filter((x) => {
-        const v = state.maxes[lotKey(x.aid, x.lot)];
+        const v = state.maxes[lotKey(x)];
         return v != null && v !== "" && !Number.isNaN(Number(v));
       });
     }
@@ -616,7 +661,7 @@
 
     const frag = document.createDocumentFragment();
     slice.forEach((lot) => {
-      const key = lotKey(lot.aid, lot.lot);
+      const key = lotKey(lot);
       const watched = !!state.watch[key];
       const maxVal = state.maxes[key];
       const st = String(lot.status || "").toLowerCase() || "open";
@@ -627,9 +672,10 @@
 
       const photo = document.createElement("div");
       photo.className = "lot-card-photo";
-      if (lot.image) {
+      const imgUrl = lot.image || lot.image_full;
+      if (imgUrl) {
         const img = document.createElement("img");
-        img.src = lot.image;
+        img.src = imgUrl;
         img.alt = lot.title || ("Lot " + lot.lot);
         img.loading = "lazy";
         img.decoding = "async";
@@ -675,7 +721,8 @@
 
       const meta = document.createElement("div");
       meta.className = "lot-card-meta";
-      meta.textContent = "aid " + lot.aid + " · " + (lot.auctionTitle || "");
+      meta.textContent =
+        (lot.platform || "Proxibid") + " · aid " + lot.aid + " · " + (lot.auctionTitle || "");
       body.appendChild(meta);
 
       const bid = document.createElement("div");
@@ -742,7 +789,8 @@
       open.href = lot.url || "#";
       open.target = "_blank";
       open.rel = "noopener noreferrer";
-      open.textContent = "Open on Proxibid";
+      open.textContent =
+        (lot.platform || "Proxibid") === "HiBid" ? "Open on HiBid" : "Open on Proxibid";
       footer.appendChild(open);
       body.appendChild(footer);
 
@@ -761,11 +809,12 @@ function exportWatchlist() {
       const hasMax = maxBid != null && maxBid !== "" && !Number.isNaN(Number(maxBid));
       if (!watched && !hasMax) return;
       const [aid, lot] = key.split(":");
-      const found = state.flatLots.find((x) => x.aid === aid && String(x.lot) === String(lot));
+      const found = state.flatLots.find((x) => lotKey(x) === key);
       items.push({
         key,
-        aid,
-        lot,
+        platform: found ? found.platform : (key.startsWith("HiBid:") ? "HiBid" : "Proxibid"),
+        aid: found ? found.aid : aid,
+        lot: found ? found.lot : lot,
         title: found ? found.title : null,
         url: found ? found.url : null,
         current_bid: found ? found.current_bid : null,
@@ -807,13 +856,21 @@ function exportWatchlist() {
       state.page = 0;
       renderLots();
     };
+    if (els.lotPlatform) {
+      els.lotPlatform.addEventListener("change", () => {
+        if (els.auction) els.auction.value = "";
+        fillAuctionSelect();
+        bump();
+      });
+    }
     ["change", "input"].forEach((ev) => {
-      [els.auction, els.q, els.status, els.min, els.max, els.watched, els.hasmax, els.sort].forEach((el) => {
+      [els.auction, els.lotPlatform, els.q, els.status, els.min, els.max, els.watched, els.hasmax, els.sort].forEach((el) => {
         if (el) el.addEventListener(ev, bump);
       });
     });
     els.resetLots.addEventListener("click", () => {
       els.auction.value = "";
+      if (els.lotPlatform) els.lotPlatform.value = "";
       els.q.value = "";
       els.status.value = "";
       els.min.value = "";
@@ -821,6 +878,7 @@ function exportWatchlist() {
       els.watched.checked = false;
       els.hasmax.checked = false;
       if (els.sort) els.sort.value = "lot";
+      fillAuctionSelect();
       bump();
     });
     els.exportBtn.addEventListener("click", exportWatchlist);
@@ -850,29 +908,63 @@ function exportWatchlist() {
     }
   }
 
-  function bootLots(data) {
-    state.auctionMeta = Array.isArray(data.auctions) ? data.auctions : [];
+  function rebuildFlatFromMeta() {
     state.flatLots = [];
     state.auctionMeta.forEach((a) => {
+      const platform = a.platform || "Proxibid";
       (a.lots || []).forEach((lot) => {
         state.flatLots.push(
           Object.assign({}, lot, {
             aid: String(a.aid),
+            platform,
             auctionTitle: a.title,
             auctionUrl: a.url,
+            image: lot.image || lot.image_full || null,
           })
         );
       });
     });
-    const lotScraped = data.scraped_at || null;
-    els.scraped.textContent =
-      (state.scrapedAt ? "Auctions " + state.scrapedAt + " · " : "") +
-      (lotScraped ? "Lots " + lotScraped : "") +
-      " · " +
-      state.flatLots.length +
-      " lots";
+  }
+
+  function bootLots(data) {
+    const proxMeta = (Array.isArray(data.auctions) ? data.auctions : []).map((a) =>
+      Object.assign({}, a, { platform: "Proxibid", aid: String(a.aid) })
+    );
+    // keep any HiBid meta already merged
+    const hibMeta = state.auctionMeta.filter((a) => a.platform === "HiBid");
+    state.auctionMeta = proxMeta.concat(hibMeta);
+    rebuildFlatFromMeta();
+    state.proxLotsScraped = data.scraped_at || null;
+    updateLotsScrapedLabel();
     fillAuctionSelect();
     renderLots();
+  }
+
+  function mergeHiBidLots(data) {
+    if (!data) return;
+    const hibMeta = (Array.isArray(data.auctions) ? data.auctions : []).map((a) =>
+      Object.assign({}, a, {
+        platform: "HiBid",
+        aid: String(a.aid),
+        lots: a.lots || [],
+        lot_count: a.lot_count != null ? a.lot_count : (a.lots || []).length,
+      })
+    );
+    state.auctionMeta = state.auctionMeta.filter((a) => a.platform !== "HiBid").concat(hibMeta);
+    rebuildFlatFromMeta();
+    state.hibLotsScraped = data.scraped_at || null;
+    updateLotsScrapedLabel();
+    fillAuctionSelect();
+    renderLots();
+  }
+
+  function updateLotsScrapedLabel() {
+    const parts = [];
+    if (state.scrapedAt) parts.push("Auctions " + state.scrapedAt);
+    if (state.proxLotsScraped) parts.push("Proxibid lots " + state.proxLotsScraped);
+    if (state.hibLotsScraped) parts.push("HiBid lots " + state.hibLotsScraped);
+    parts.push(state.flatLots.length.toLocaleString() + " lots");
+    els.scraped.textContent = parts.join(" · ");
   }
 
   wireLotFilters();
@@ -901,7 +993,16 @@ function exportWatchlist() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then(bootLots)
+    .then((data) => {
+      bootLots(data);
+      return fetch("hibid-lots.json", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null)
+        .then((hib) => {
+          if (hib) mergeHiBidLots(hib);
+          else console.warn("hibid-lots.json not loaded");
+        });
+    })
     .catch((err) => {
       els.lotCount.textContent =
         "Could not load lots.json — " + err.message + ". Serve via: python3 -m http.server 8766";

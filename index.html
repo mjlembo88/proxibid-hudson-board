@@ -30,6 +30,14 @@
 
     <div class="filters lots-filters">
       <label>
+        Platform
+        <select id="f-lot-platform">
+          <option value="">All</option>
+          <option value="Proxibid">Proxibid</option>
+          <option value="HiBid">HiBid</option>
+        </select>
+      </label>
+      <label>
         Auction
         <select id="f-auction"></select>
       </label>
@@ -66,6 +74,7 @@
       <button type="button" id="btn-export" class="primary">Export watchlist JSON</button>
     </div>
 
+    <p class="lots-note muted" id="lots-note" hidden></p>
     <div class="lots-toolbar">
       <div class="count" id="lot-count"></div>
       <div class="pager">
@@ -177,7 +186,7 @@
   <footer class="foot">
     Serve locally: <code>cd /workspace/proxibid/dashboard && python3 -m http.server 8766</code>
     → <code>http://127.0.0.1:8766/</code>.
-    Lots: <code>lots.json</code> (Proxibid). Auctions: <code>auctions.json</code> + <code>hibid-auctions.json</code>.
+    Lots: <code>lots.json</code> (Proxibid) + <code>hibid-lots.json</code>. Auctions: <code>auctions.json</code> + <code>hibid-auctions.json</code>.
     Export writes a downloadable <code>watchlist.json</code> for Auction Desk (watched + hard maxes).
     This UI never places bids.
   </footer>

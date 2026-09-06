@@ -307,3 +307,10 @@ table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .fav-auction .meta { color: var(--muted); font-size: 0.85rem; line-height: 1.35; }
 .fav-lots-grid { max-width: none; }
 #panel-map td .pill { margin-right: 4px; }
+
+.lots-note {
+  margin: 0;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}

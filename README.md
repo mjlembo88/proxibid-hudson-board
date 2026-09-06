@@ -6,7 +6,7 @@ Live: https://mjlembo88.github.io/proxibid-hudson-board/
 
 ## Tabs
 
-1. **Lots / watch** — Proxibid lots (photo-first cards), ★ watch, hard max $, 100/page + Next at bottom
+1. **Lots / watch** — Proxibid + HiBid lots (photo-first), platform filter, ★ watch, hard max $, 100/page + Next at bottom
 2. **Auctions** — Proxibid + HiBid map/table, platform filter + badges, ★ favorite auction
 3. **Favorites** — starred auctions + watched lots; export JSON
 
@@ -22,6 +22,7 @@ Live: https://mjlembo88.github.io/proxibid-hudson-board/
 | `auctions.json` | Proxibid auctions (map) |
 | `hibid-auctions.json` | HiBid auctions within 50 mi |
 | `lots.json` | Proxibid lot catalog scrape |
+| `hibid-lots.json` | Selected HiBid lot catalogs |
 
 ## Local
 
