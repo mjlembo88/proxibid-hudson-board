@@ -1,0 +1,27 @@
+{
+  "built_at": "2026-09-27T13:52:29-04:00",
+  "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
+  "incoming_merged": [],
+  "map_removed": [],
+  "map_kept": [
+    {
+      "platform": "HiBid",
+      "aid": "773227",
+      "title": "Medical and Surgical Equipment Auction FL 2609",
+      "seller": "Big Medical Auction House LLC",
+      "end_date": "2026-09-30",
+      "end_source": "hibid-live-state eventDateEnd",
+      "keep": true,
+      "reason": "HiBid live state: lots open (checked 2026-09-27T13:51:36-04:00)"
+    }
+  ],
+  "lots_removed": [],
+  "lots_kept": [],
+  "unknown_end_date": [],
+  "totals": {
+    "map_kept": 1,
+    "map_removed": 0,
+    "lots_kept": 0,
+    "lots_removed": 0
+  }
+}

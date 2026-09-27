@@ -1,0 +1,364 @@
+{
+  "source": "florida-b.hibid.com/graphql LotSearch (auctionId, isArchive=false, pageLength=5)",
+  "updated_at": "2026-09-27T13:51:36-04:00",
+  "auctions": {
+    "772701": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 797,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-06T00:00:00"
+    },
+    "774470": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 224,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-07T00:00:00"
+    },
+    "772578": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 199,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-07T00:00:00"
+    },
+    "775216": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 423,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-10T00:00:00"
+    },
+    "774514": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 339,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-11T00:00:00"
+    },
+    "771208": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 368,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-12T00:00:00"
+    },
+    "775329": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 217,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-12T00:00:00"
+    },
+    "774657": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 626,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-13T00:00:00"
+    },
+    "774467": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 198,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-14T00:00:00"
+    },
+    "774061": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 426,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-15T00:00:00"
+    },
+    "771209": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 420,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-19T00:00:00"
+    },
+    "775076": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 288,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "SOLD",
+        "SOLD",
+        "SOLD",
+        "SOLD",
+        "SOLD"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-19T00:00:00"
+    },
+    "772483": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 478,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-19T00:00:00"
+    },
+    "769875": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 848,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "SOLD",
+        "SOLD",
+        "SOLD",
+        "PASSED",
+        "PASSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-20T00:00:00"
+    },
+    "775135": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 515,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-20T00:00:00"
+    },
+    "773737": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 4,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "PASSED",
+        "PASSED",
+        "PASSED",
+        "PASSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-25T00:00:00"
+    },
+    "771210": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 338,
+      "sample_isClosed": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "sample_status": [
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED",
+        "CLOSED"
+      ],
+      "closed": true,
+      "eventDateEnd": "2026-09-26T00:00:00"
+    },
+    "773227": {
+      "checked_at": "2026-09-27T13:51:36-04:00",
+      "totalCount": 1281,
+      "sample_isClosed": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "sample_status": [
+        "OPEN",
+        "OPEN",
+        "OPEN",
+        "OPEN",
+        "OPEN"
+      ],
+      "closed": false,
+      "eventDateEnd": "2026-09-30T00:00:00"
+    }
+  }
+}
