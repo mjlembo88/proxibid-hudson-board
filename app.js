@@ -3,6 +3,7 @@
   const LS_WATCH = "proxibid-hudson-watch-v1";
   const LS_MAX = "proxibid-hudson-maxes-v1";
   const LS_STARS = "hudson-auction-stars-v1";
+  const LS_VIEW = "proxibid-hudson-lots-view-v1"; // "grid" | "list"
   const PAGE_SIZE = 100;
 
   const state = {
@@ -23,6 +24,7 @@
     lotSort: "lot",
     lotSortAsc: true,
     page: 0,
+    lotsView: "list", // set from localStorage / device below
   };
 
   const els = {
@@ -61,6 +63,11 @@
     exportFavs: document.getElementById("btn-export-favs"),
     favAuctions: document.getElementById("fav-auctions"),
     favLots: document.getElementById("fav-lots"),
+    viewGrid: document.getElementById("view-grid"),
+    viewList: document.getElementById("view-list"),
+    detail: document.getElementById("lot-detail"),
+    detailBody: document.getElementById("lot-detail-body"),
+    detailHeading: document.getElementById("lot-detail-heading"),
   };
 
   let map, layer;
@@ -628,6 +635,336 @@
     return items;
   }
 
+  /* -------- lots view mode (grid thumbnails / list cards) -------- */
+  function defaultLotsView() {
+    try {
+      if (window.matchMedia("(max-width: 768px)").matches || window.matchMedia("(pointer: coarse)").matches) return "grid";
+    } catch (_) {}
+    return "list";
+  }
+  function loadLotsView() {
+    try {
+      const v = localStorage.getItem(LS_VIEW);
+      if (v === "grid" || v === "list") return v;
+    } catch (_) {}
+    return defaultLotsView();
+  }
+  function applyLotsViewUi() {
+    const grid = state.lotsView === "grid";
+    els.lotsGrid.classList.toggle("view-grid", grid);
+    els.lotsGrid.classList.toggle("view-list", !grid);
+    if (els.viewGrid) {
+      els.viewGrid.classList.toggle("on", grid);
+      els.viewGrid.setAttribute("aria-pressed", grid ? "true" : "false");
+    }
+    if (els.viewList) {
+      els.viewList.classList.toggle("on", !grid);
+      els.viewList.setAttribute("aria-pressed", grid ? "false" : "true");
+    }
+  }
+  function setLotsView(v) {
+    if (v !== "grid" && v !== "list") return;
+    state.lotsView = v;
+    try { localStorage.setItem(LS_VIEW, v); } catch (_) {}
+    applyLotsViewUi();
+    renderLots();
+  }
+
+  /* -------- shared lot actions (list cards, grid tiles and the detail sheet all use these) -------- */
+  function toggleWatch(key) {
+    if (state.watch[key]) delete state.watch[key];
+    else state.watch[key] = true;
+    saveWatch();
+    afterLotChange();
+  }
+  function afterLotChange() {
+    renderLots();
+    refreshLotDetail();
+  }
+  function fillPhoto(photo, lot, st) {
+    // photo, or a "No photo" placeholder, plus the lot # and status badges
+    photo.innerHTML = "";
+    const addBadges = () => {
+      const badge = document.createElement("span");
+      badge.className = "lot-badge";
+      badge.textContent = "#" + lot.lot;
+      photo.appendChild(badge);
+      const sb = document.createElement("span");
+      sb.className = "status-badge " + st;
+      sb.textContent = lot.status || "—";
+      photo.appendChild(sb);
+    };
+    const placeholder = () => {
+      const ph = document.createElement("div");
+      ph.className = "ph";
+      ph.textContent = "No photo";
+      return ph;
+    };
+    const imgUrl = lot.image || lot.image_full;
+    if (imgUrl) {
+      const img = document.createElement("img");
+      img.src = imgUrl;
+      img.alt = lot.title || ("Lot " + lot.lot);
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.addEventListener("error", () => {
+        img.replaceWith(placeholder());
+      });
+      photo.appendChild(img);
+    } else {
+      photo.appendChild(placeholder());
+    }
+    addBadges();
+  }
+
+  /* Full lot card (list view, and the grid-view detail sheet). */
+  function buildLotCard(lot) {
+    const key = lotKey(lot);
+    const watched = !!state.watch[key];
+    const maxVal = state.maxes[key];
+    const st = String(lot.status || "").toLowerCase() || "open";
+
+    const card = document.createElement("article");
+    card.className = "lot-card" + (watched ? " watched" : "");
+    card.setAttribute("role", "listitem");
+    card.dataset.key = key;
+
+    const photo = document.createElement("div");
+    photo.className = "lot-card-photo";
+    fillPhoto(photo, lot, st);
+    card.appendChild(photo);
+
+    const body = document.createElement("div");
+    body.className = "lot-card-body";
+
+    const title = document.createElement("h2");
+    title.className = "lot-card-title";
+    title.textContent = lot.title || "(no title)";
+    body.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.className = "lot-card-meta";
+    meta.textContent =
+      (lot.platform || "Proxibid") + " · aid " + lot.aid + " · " + (lot.auctionTitle || "");
+    body.appendChild(meta);
+
+    const bid = document.createElement("div");
+    bid.className = "lot-card-bid";
+    const bidLabel = lot.bid_label || "Current bid";
+    bid.innerHTML = "<span>" + escapeHtml(bidLabel) + "</span><span class=\"money\">" + escapeHtml(fmtMoney(lot.current_bid, lot.currency)) + "</span>";
+    body.appendChild(bid);
+    if (lot.closes_at) {
+      const cl = document.createElement("div");
+      cl.className = "lot-card-meta";
+      let when = lot.closes_at;
+      try {
+        when = new Date(lot.closes_at).toLocaleString("en-US", {
+          timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+        }) + " ET";
+      } catch (_) {}
+      cl.textContent = (/live/.test(lot.closes_at_source || "") ? "Live sale starts " : "Closes ") + when;
+      body.appendChild(cl);
+    }
+    if (lot.tags && lot.tags.length) {
+      const tg = document.createElement("div");
+      tg.className = "lot-tags";
+      lot.tags.forEach((t) => {
+        const sp = document.createElement("span");
+        sp.className = "pill tag-" + t.replace(/[^a-z]+/gi, "-").toLowerCase();
+        sp.textContent = t;
+        tg.appendChild(sp);
+      });
+      body.appendChild(tg);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "lot-card-actions";
+
+    const watchBtn = document.createElement("button");
+    watchBtn.type = "button";
+    watchBtn.className = "watch-btn" + (watched ? " on" : "");
+    watchBtn.title = watched ? "Unwatch" : "Watch";
+    watchBtn.setAttribute("aria-label", watched ? "Unwatch lot" : "Watch lot");
+    watchBtn.textContent = "★";
+    watchBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleWatch(key);
+    });
+    actions.appendChild(watchBtn);
+
+    const maxWrap = document.createElement("div");
+    maxWrap.className = "max-wrap";
+    maxWrap.innerHTML = "<span>Hard max $ (ceiling)</span>";
+    const maxInput = document.createElement("input");
+    maxInput.className = "max-input" + (maxVal != null && maxVal !== "" ? " has-value" : "");
+    maxInput.type = "number";
+    maxInput.min = "0";
+    maxInput.step = "1";
+    maxInput.inputMode = "decimal";
+    maxInput.placeholder = "0";
+    maxInput.title = "Hard max bid (USD) — Auction Desk never bids above this";
+    maxInput.setAttribute("aria-label", "Hard max bid USD");
+    if (maxVal != null && maxVal !== "") maxInput.value = maxVal;
+    maxInput.addEventListener("click", (e) => e.stopPropagation());
+    maxInput.addEventListener("change", () => {
+      const raw = maxInput.value.trim();
+      if (raw === "") delete state.maxes[key];
+      else {
+        const n = Number(raw);
+        if (Number.isNaN(n) || n < 0) {
+          maxInput.value = state.maxes[key] != null ? state.maxes[key] : "";
+          return;
+        }
+        state.maxes[key] = n;
+        state.watch[key] = true;
+        saveWatch();
+      }
+      saveMaxes();
+      afterLotChange();
+    });
+    maxWrap.appendChild(maxInput);
+    actions.appendChild(maxWrap);
+    body.appendChild(actions);
+
+    const footer = document.createElement("div");
+    footer.className = "lot-card-footer";
+    const open = document.createElement("a");
+    open.className = "linkish";
+    open.href = lot.url || "#";
+    open.target = "_blank";
+    open.rel = "noopener noreferrer";
+    open.textContent =
+      (lot.platform || "Proxibid") === "HiBid" ? "Open on HiBid" : "Open on Proxibid";
+    footer.appendChild(open);
+    body.appendChild(footer);
+
+    card.appendChild(body);
+    return card;
+  }
+
+  /* Grid thumbnail: square photo, star overlay, one-line title + bid. Tap opens the detail sheet. */
+  function buildLotTile(lot) {
+    const key = lotKey(lot);
+    const watched = !!state.watch[key];
+    const maxVal = state.maxes[key];
+    const hasMax = maxVal != null && maxVal !== "" && !Number.isNaN(Number(maxVal));
+    const st = String(lot.status || "").toLowerCase() || "open";
+
+    const tile = document.createElement("article");
+    tile.className = "lot-tile" + (watched ? " watched" : "");
+    tile.setAttribute("role", "listitem");
+    tile.tabIndex = 0;
+    tile.dataset.key = key;
+    tile.title = lot.title || "";
+    tile.setAttribute("aria-label", "Lot " + lot.lot + ": " + (lot.title || "") + " — open details");
+
+    const photo = document.createElement("div");
+    photo.className = "lot-tile-photo";
+    fillPhoto(photo, lot, st);
+    const star = document.createElement("button");
+    star.type = "button";
+    star.className = "tile-star" + (watched ? " on" : "");
+    star.textContent = "★";
+    star.title = watched ? "Unwatch" : "Watch";
+    star.setAttribute("aria-label", watched ? "Unwatch lot" : "Watch lot");
+    star.setAttribute("aria-pressed", watched ? "true" : "false");
+    star.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleWatch(key);
+    });
+    photo.appendChild(star);
+    tile.appendChild(photo);
+
+    const cap = document.createElement("div");
+    cap.className = "lot-tile-cap";
+    const t = document.createElement("div");
+    t.className = "lot-tile-title";
+    t.textContent = lot.title || "(no title)";
+    cap.appendChild(t);
+    const b = document.createElement("div");
+    b.className = "lot-tile-bid";
+    b.innerHTML = "<span class=\"money\">" + escapeHtml(fmtMoney(lot.current_bid, lot.currency)) + "</span>" +
+      (hasMax ? " <span class=\"tile-max\">· max " + escapeHtml(fmtMoney(maxVal, "USD")) + "</span>" : "");
+    cap.appendChild(b);
+    tile.appendChild(cap);
+
+    tile.addEventListener("click", () => openLotDetail(lot));
+    tile.addEventListener("keydown", (e) => {
+      if (e.target !== tile) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openLotDetail(lot);
+      }
+    });
+    return tile;
+  }
+
+  /* -------- lot detail sheet (grid view: full card incl. hard max) -------- */
+  let detailKey = null;
+  let detailPushed = false;
+  function openLotDetail(lot) {
+    if (!els.detail) {
+      if (lot.url) window.open(lot.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    detailKey = lotKey(lot);
+    renderLotDetail(lot);
+    els.detail.hidden = false;
+    document.body.classList.add("detail-open");
+    if (!detailPushed) {
+      // Android back button closes the sheet instead of leaving the board
+      try { history.pushState({ lotDetail: detailKey }, ""); detailPushed = true; } catch (_) {}
+    }
+    const c = els.detail.querySelector(".lot-detail-close");
+    if (c) c.focus({ preventScroll: true });
+  }
+  function renderLotDetail(lot) {
+    els.detailBody.innerHTML = "";
+    const card = buildLotCard(lot);
+    card.removeAttribute("role");
+    els.detailBody.appendChild(card);
+    if (els.detailHeading) els.detailHeading.textContent = "Lot #" + lot.lot + " · " + (lot.platform || "Proxibid");
+  }
+  function refreshLotDetail() {
+    if (!detailKey || !els.detail || els.detail.hidden) return;
+    const lot = state.flatLots.find((x) => lotKey(x) === detailKey);
+    if (lot) renderLotDetail(lot);
+  }
+  function hideLotDetail() {
+    if (!els.detail) return;
+    els.detail.hidden = true;
+    document.body.classList.remove("detail-open");
+    const k = detailKey;
+    detailKey = null;
+    els.detailBody.innerHTML = "";
+    if (k) {
+      const tile = els.lotsGrid.querySelector('[data-key="' + (window.CSS && CSS.escape ? CSS.escape(k) : k) + '"]');
+      if (tile) tile.focus({ preventScroll: true });
+    }
+  }
+  function closeLotDetail() {
+    if (detailPushed) {
+      detailPushed = false;
+      hideLotDetail();
+      try { history.back(); } catch (_) {}
+    } else {
+      hideLotDetail();
+    }
+  }
+  if (els.detail) {
+    els.detail.querySelectorAll('[data-act="close-detail"]').forEach((el) => el.addEventListener("click", closeLotDetail));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !els.detail.hidden) closeLotDetail();
+    });
+    window.addEventListener("popstate", () => {
+      if (detailPushed) {
+        detailPushed = false;
+        hideLotDetail();
+      }
+    });
+  }
+
   function renderLots() {
     const items = filteredLots();
     const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -661,178 +998,20 @@
       els.nextPageBottom.hidden = state.page >= pages - 1;
     }
 
+    applyLotsViewUi();
     els.lotsGrid.innerHTML = "";
     if (!slice.length) {
       const empty = document.createElement("div");
-      empty.className = "muted";
+      empty.className = "muted lots-empty";
       empty.style.padding = "24px 8px";
       empty.textContent = "No lots match filters.";
       els.lotsGrid.appendChild(empty);
       return;
     }
 
+    const build = state.lotsView === "grid" ? buildLotTile : buildLotCard;
     const frag = document.createDocumentFragment();
-    slice.forEach((lot) => {
-      const key = lotKey(lot);
-      const watched = !!state.watch[key];
-      const maxVal = state.maxes[key];
-      const st = String(lot.status || "").toLowerCase() || "open";
-
-      const card = document.createElement("article");
-      card.className = "lot-card" + (watched ? " watched" : "");
-      card.setAttribute("role", "listitem");
-
-      const photo = document.createElement("div");
-      photo.className = "lot-card-photo";
-      const imgUrl = lot.image || lot.image_full;
-      if (imgUrl) {
-        const img = document.createElement("img");
-        img.src = imgUrl;
-        img.alt = lot.title || ("Lot " + lot.lot);
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.addEventListener("error", () => {
-          photo.innerHTML = "";
-          const ph = document.createElement("div");
-          ph.className = "ph";
-          ph.textContent = "No photo";
-          photo.appendChild(ph);
-          const badge = document.createElement("span");
-          badge.className = "lot-badge";
-          badge.textContent = "#" + lot.lot;
-          photo.appendChild(badge);
-          const sb = document.createElement("span");
-          sb.className = "status-badge " + st;
-          sb.textContent = lot.status || "—";
-          photo.appendChild(sb);
-        });
-        photo.appendChild(img);
-      } else {
-        const ph = document.createElement("div");
-        ph.className = "ph";
-        ph.textContent = "No photo";
-        photo.appendChild(ph);
-      }
-      const badge = document.createElement("span");
-      badge.className = "lot-badge";
-      badge.textContent = "#" + lot.lot;
-      photo.appendChild(badge);
-      const sb = document.createElement("span");
-      sb.className = "status-badge " + st;
-      sb.textContent = lot.status || "—";
-      photo.appendChild(sb);
-      card.appendChild(photo);
-
-      const body = document.createElement("div");
-      body.className = "lot-card-body";
-
-      const title = document.createElement("h2");
-      title.className = "lot-card-title";
-      title.textContent = lot.title || "(no title)";
-      body.appendChild(title);
-
-      const meta = document.createElement("div");
-      meta.className = "lot-card-meta";
-      meta.textContent =
-        (lot.platform || "Proxibid") + " · aid " + lot.aid + " · " + (lot.auctionTitle || "");
-      body.appendChild(meta);
-
-      const bid = document.createElement("div");
-      bid.className = "lot-card-bid";
-      const bidLabel = lot.bid_label || "Current bid";
-      bid.innerHTML = "<span>" + escapeHtml(bidLabel) + "</span><span class=\"money\">" + escapeHtml(fmtMoney(lot.current_bid, lot.currency)) + "</span>";
-      body.appendChild(bid);
-      if (lot.closes_at) {
-        const cl = document.createElement("div");
-        cl.className = "lot-card-meta";
-        let when = lot.closes_at;
-        try {
-          when = new Date(lot.closes_at).toLocaleString("en-US", {
-            timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
-          }) + " ET";
-        } catch (_) {}
-        cl.textContent = (/live/.test(lot.closes_at_source || "") ? "Live sale starts " : "Closes ") + when;
-        body.appendChild(cl);
-      }
-      if (lot.tags && lot.tags.length) {
-        const tg = document.createElement("div");
-        tg.className = "lot-tags";
-        lot.tags.forEach((t) => {
-          const sp = document.createElement("span");
-          sp.className = "pill tag-" + t.replace(/[^a-z]+/gi, "-").toLowerCase();
-          sp.textContent = t;
-          tg.appendChild(sp);
-        });
-        body.appendChild(tg);
-      }
-
-      const actions = document.createElement("div");
-      actions.className = "lot-card-actions";
-
-      const watchBtn = document.createElement("button");
-      watchBtn.type = "button";
-      watchBtn.className = "watch-btn" + (watched ? " on" : "");
-      watchBtn.title = watched ? "Unwatch" : "Watch";
-      watchBtn.setAttribute("aria-label", watched ? "Unwatch lot" : "Watch lot");
-      watchBtn.textContent = "★";
-      watchBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (state.watch[key]) delete state.watch[key];
-        else state.watch[key] = true;
-        saveWatch();
-        renderLots();
-      });
-      actions.appendChild(watchBtn);
-
-      const maxWrap = document.createElement("div");
-      maxWrap.className = "max-wrap";
-      maxWrap.innerHTML = "<span>Hard max $ (ceiling)</span>";
-      const maxInput = document.createElement("input");
-      maxInput.className = "max-input" + (maxVal != null && maxVal !== "" ? " has-value" : "");
-      maxInput.type = "number";
-      maxInput.min = "0";
-      maxInput.step = "1";
-      maxInput.inputMode = "decimal";
-      maxInput.placeholder = "0";
-      maxInput.title = "Hard max bid (USD) — Auction Desk never bids above this";
-      maxInput.setAttribute("aria-label", "Hard max bid USD");
-      if (maxVal != null && maxVal !== "") maxInput.value = maxVal;
-      maxInput.addEventListener("click", (e) => e.stopPropagation());
-      maxInput.addEventListener("change", () => {
-        const raw = maxInput.value.trim();
-        if (raw === "") delete state.maxes[key];
-        else {
-          const n = Number(raw);
-          if (Number.isNaN(n) || n < 0) {
-            maxInput.value = state.maxes[key] != null ? state.maxes[key] : "";
-            return;
-          }
-          state.maxes[key] = n;
-          state.watch[key] = true;
-          saveWatch();
-        }
-        saveMaxes();
-        renderLots();
-      });
-      maxWrap.appendChild(maxInput);
-      actions.appendChild(maxWrap);
-      body.appendChild(actions);
-
-      const footer = document.createElement("div");
-      footer.className = "lot-card-footer";
-      const open = document.createElement("a");
-      open.className = "linkish";
-      open.href = lot.url || "#";
-      open.target = "_blank";
-      open.rel = "noopener noreferrer";
-      open.textContent =
-        (lot.platform || "Proxibid") === "HiBid" ? "Open on HiBid" : "Open on Proxibid";
-      footer.appendChild(open);
-      body.appendChild(footer);
-
-      card.appendChild(body);
-      frag.appendChild(card);
-    });
+    slice.forEach((lot) => frag.appendChild(build(lot)));
     els.lotsGrid.appendChild(frag);
   }
 
@@ -1005,6 +1184,11 @@ function exportWatchlist() {
   }
 
   wireLotFilters();
+  state.lotsView = loadLotsView();
+  applyLotsViewUi();
+  [els.viewGrid, els.viewList].forEach((b) => {
+    if (b) b.addEventListener("click", () => setLotsView(b.dataset.view));
+  });
   if (els.exportFavs) els.exportFavs.addEventListener("click", exportFavorites);
 
 

@@ -7,6 +7,7 @@ Live: https://mjlembo88.github.io/proxibid-hudson-board/
 ## Tabs
 
 1. **Lots / watch** — Proxibid + HiBid lots (photo-first), platform filter, ★ watch, hard max $, 100/page + Next at bottom
+   - **Grid / List toggle** (saved in localStorage `proxibid-hudson-lots-view-v1`; default Grid on phones, List on desktop). Grid = 2 square thumbnails per row with one-line title + bid and a ★ overlay; tap a tile to open the full card (hard max $ lives there) in a sheet. Android back closes the sheet.
 2. **Auctions** — Proxibid + HiBid map/table, platform filter + badges, ★ favorite auction
 3. **Favorites** — starred auctions + watched lots; export JSON
 

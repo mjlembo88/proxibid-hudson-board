@@ -1,5 +1,5 @@
 {
-  "built_at": "2026-09-27T14:27:45-04:00",
+  "built_at": "2026-09-27T19:26:23-04:00",
   "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
   "incoming_merged": [
     [

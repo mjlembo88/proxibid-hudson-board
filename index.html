@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hudson auction board · Proxibid + HiBid</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="icon" href="data:," />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -106,6 +107,10 @@
           <option value="status">Status</option>
         </select>
       </label>
+      <div class="view-toggle" role="group" aria-label="Lots view">
+        <button type="button" id="view-grid" class="view-btn" data-view="grid" aria-pressed="false" title="Photo grid (2 per row)">▦ Grid</button>
+        <button type="button" id="view-list" class="view-btn" data-view="list" aria-pressed="false" title="Full cards">☰ List</button>
+      </div>
     </div>
 
     <div class="lots-scroll">
@@ -194,6 +199,17 @@
       <div id="fav-lots" class="lots-grid fav-lots-grid"></div>
     </div>
   </section>
+
+  <div id="lot-detail" class="lot-detail" hidden>
+    <div class="lot-detail-backdrop" data-act="close-detail"></div>
+    <div class="lot-detail-sheet" role="dialog" aria-modal="true" aria-label="Lot detail">
+      <div class="lot-detail-bar">
+        <span class="lot-detail-heading" id="lot-detail-heading">Lot</span>
+        <button type="button" class="ghost lot-detail-close" data-act="close-detail" aria-label="Close lot detail">✕ Close</button>
+      </div>
+      <div class="lot-detail-body" id="lot-detail-body"></div>
+    </div>
+  </div>
 
   <footer class="foot">
     Serve locally: <code>cd /workspace/proxibid/dashboard && python3 -m http.server 8766</code>
@@ -294,7 +310,7 @@
       "source": "saved Catalog.asp HTML (new-catalogs/)"
     }
   ],
-  "built_at": "2026-09-27T14:27:45-04:00",
+  "built_at": "2026-09-27T19:26:23-04:00",
   "expiry_filter": "auctions/lots whose end date is before build time (ET) removed at build; see build-info.json"
 };</script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
