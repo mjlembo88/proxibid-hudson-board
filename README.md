@@ -45,4 +45,10 @@ end date (23:59:59 America/New_York) is before the build time. HiBid auctions co
 GraphQL (`hibid-live-state.json`, lots `isClosed=true`) are dropped; auctions with no end date are kept
 unless confirmed closed and are logged in `build-info.json`. New catalogs can be dropped into
 `incoming/proxibid-lots-*.json` / `incoming/proxibid-auctions-*.json` (same shape as `lots.json` /
-`auctions.json`) and are merged on the next build.
+`auctions.json`) and are merged on the next build. Saved Proxibid catalog HTML
+(`/workspace/proxibid/new-catalogs/<aid>-p<page>.html`) is turned into those files by
+`python3 /workspace/proxibid/scripts/parse_proxibid_catalogs.py` (never fetches proxibid.com).
+
+Lot tags (build time, keyword rules in `build.py` `lot_tags`): `mower` (riding / zero-turn / stand-on /
+lawn tractor), `RC mower` (remote-control / crawler / robotic), `mower parts`. Lots tab → **Tag** filter.
+Auctions flagged `always_show` (Mark's picks beyond 50 mi) stay on the map and are marked "beyond N mi".

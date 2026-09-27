@@ -1,220 +1,82 @@
 {
-  "built_at": "2026-09-27T13:54:04-04:00",
+  "built_at": "2026-09-27T14:05:08-04:00",
   "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
-  "incoming_merged": [],
-  "map_removed": [
-    {
-      "platform": "Proxibid",
-      "aid": "299443",
-      "title": "WINN DIXIE SUPERMARKET - ST. PETERSBURG, FL",
-      "seller": "Vision Equipment & Auction",
-      "end_date": "2026-09-08",
-      "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-08 (before 2026-09-27 13:54 ET)"
-    },
-    {
-      "platform": "Proxibid",
-      "aid": "300099",
-      "title": "DAY 1/3 THU SEP 17 SE REG. EQUIP-GOVT & FLEET SALE",
-      "seller": "Royal Auction Group, Inc.",
-      "end_date": "2026-09-17",
-      "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-17 (before 2026-09-27 13:54 ET)"
-    },
-    {
-      "platform": "Proxibid",
-      "aid": "300100",
-      "title": "DAY 2/3 FRI SEP 18 SE REG. TRUCK-GOVT & FLEET SALE",
-      "seller": "Royal Auction Group, Inc.",
-      "end_date": "2026-09-18",
-      "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-18 (before 2026-09-27 13:54 ET)"
-    },
-    {
-      "platform": "Proxibid",
-      "aid": "300101",
-      "title": "DAY 3/3 SAT SEP 19 SE REG. VEHICLE GOVT/FLEET SALE",
-      "seller": "Royal Auction Group, Inc.",
-      "end_date": "2026-09-19",
-      "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-19 (before 2026-09-27 13:54 ET)"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "772701",
-      "title": "Overstock Product Liquidation Tampa Bay 9/6/2026",
-      "seller": "ATX Auctions Tampa Bay",
-      "end_date": "2026-09-06",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "774470",
-      "title": "#165 Amazon Surplus Closing Monday 10AM!",
-      "seller": "ATX Auctions Tampa",
-      "end_date": "2026-09-07",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "772578",
-      "title": "#624 5 STAR ESTATE TREASURES ONLINE ONLY",
-      "seller": "5 Star Auctioneers",
-      "end_date": "2026-09-07",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775216",
-      "title": "#166 General Merchandise Closing Thurs 6PM! $5 Starting Bids",
-      "seller": "ATX Auctions Tampa",
-      "end_date": "2026-09-10",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "774514",
-      "title": "HUDSON FLORIDA - Special Collectors Week #3",
-      "seller": "Miss Peggy's",
-      "end_date": "2026-09-11",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "771208",
-      "title": "ONLINE - 9/12/2026 - NO SHIPPING - LOCAL PICKUP ONLY",
-      "seller": "Ballpark Auctions",
-      "end_date": "2026-09-12",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775329",
-      "title": "Disney and Dolls",
-      "seller": "Diamond Palm Auctions",
-      "end_date": "2026-09-12",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "774657",
-      "title": "700 Lots over 500 Guns. Ammo, Optic, Swords Ends 9/13 8pmE",
-      "seller": "Accurate Gun Auctions",
-      "end_date": "2026-09-13",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "774467",
-      "title": "#626 5 STAR ESTATE TREASURES ONLINE ONLY",
-      "seller": "5 Star Auctioneers",
-      "end_date": "2026-09-14",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "774061",
-      "title": "9/15 Kennedy Brothers Antique & Estate Auction",
-      "seller": "Kennedy Brothers Enterprises Inc.",
-      "end_date": "2026-09-15",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "771209",
-      "title": "ONLINE - 9/19/2026 - NO SHIPPING - LOCAL PICKUP ONLY",
-      "seller": "Ballpark Auctions",
-      "end_date": "2026-09-19",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775076",
-      "title": "September Exceptional Estates Auction",
-      "seller": "Blackwell Auctions LLC",
-      "end_date": "2026-09-19",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "772483",
-      "title": "September 19th, 2026 Discovery Auction",
-      "seller": "Burchard Galleries",
-      "end_date": "2026-09-19",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "769875",
-      "title": "Tampa Bay, FL Gun & Firearm Estate Auction #107",
-      "seller": "Gun Auctions USA",
-      "end_date": "2026-09-20",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775135",
-      "title": "September 20th, 2026 Premiere Auction",
-      "seller": "Burchard Galleries",
-      "end_date": "2026-09-20",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "773737",
-      "title": "TAMPA FL. ROOFING TRUCKS & CONSTRUCTION MATERIAL",
-      "seller": "Urban Auction Company",
-      "end_date": "2026-09-25",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "771210",
-      "title": "ONLINE - 9/26/2026 - NO SHIPPING - LOCAL PICKUP ONLY",
-      "seller": "Ballpark Auctions",
-      "end_date": "2026-09-26",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true"
-    }
+  "incoming_merged": [
+    [
+      "proxibid-auctions-299782.json",
+      "299782"
+    ],
+    [
+      "proxibid-auctions-300776.json",
+      "300776"
+    ],
+    [
+      "proxibid-auctions-300978.json",
+      "300978"
+    ],
+    [
+      "proxibid-auctions-301177.json",
+      "301177"
+    ],
+    [
+      "proxibid-lots-299782.json",
+      "299782"
+    ],
+    [
+      "proxibid-lots-300776.json",
+      "300776"
+    ],
+    [
+      "proxibid-lots-300978.json",
+      "300978"
+    ],
+    [
+      "proxibid-lots-301177.json",
+      "301177"
+    ]
   ],
+  "map_removed": [],
   "map_kept": [
+    {
+      "platform": "Proxibid",
+      "aid": "299782",
+      "title": "GOVERNMENT SURPLUS AND MORE",
+      "seller": "Central Florida Auction",
+      "end_date": "2026-10-03",
+      "end_source": "datetime_display (latest date)",
+      "keep": true,
+      "reason": "ends 2026-10-03"
+    },
+    {
+      "platform": "Proxibid",
+      "aid": "300776",
+      "title": "Bounce House Business Liquidation",
+      "seller": "Kincaid Auction Realty, LLC",
+      "end_date": "2026-10-15",
+      "end_source": "datetime_display (latest date)",
+      "keep": true,
+      "reason": "ends 2026-10-15"
+    },
+    {
+      "platform": "Proxibid",
+      "aid": "300978",
+      "title": "Yoder and Frey - Florida Auction",
+      "seller": "Yoder & Frey Auctioneers, LLC",
+      "end_date": "2026-10-15",
+      "end_source": "datetime_display (latest date)",
+      "keep": true,
+      "reason": "ends 2026-10-15"
+    },
+    {
+      "platform": "Proxibid",
+      "aid": "301177",
+      "title": "10/5 FL PUBLIC EQUIPMENT AUCTION",
+      "seller": "ASI3 LLC",
+      "end_date": "2026-10-05",
+      "end_source": "datetime_display (latest date)",
+      "keep": true,
+      "reason": "ends 2026-10-05"
+    },
     {
       "platform": "HiBid",
       "aid": "773227",
@@ -226,168 +88,70 @@
       "reason": "HiBid live state: lots open (checked 2026-09-27T13:51:36-04:00)"
     }
   ],
-  "lots_removed": [
+  "lots_removed": [],
+  "lots_kept": [
     {
       "platform": "Proxibid",
-      "aid": "299443",
-      "title": "WINN DIXIE SUPERMARKET - ST. PETERSBURG, FL",
-      "seller": "Vision Equipment & Auction",
-      "end_date": "2026-09-08",
+      "aid": "299782",
+      "title": "GOVERNMENT SURPLUS AND MORE",
+      "seller": "Central Florida Auction",
+      "end_date": "2026-10-03",
       "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-08 (before 2026-09-27 13:54 ET)",
-      "lots": 340
-    },
-    {
-      "platform": "Proxibid",
-      "aid": "300099",
-      "title": "DAY 1/3 THU SEP 17 SE REG. EQUIP-GOVT & FLEET SALE",
-      "seller": "Royal Auction Group, Inc.",
-      "end_date": "2026-09-17",
-      "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-17 (before 2026-09-27 13:54 ET)",
-      "lots": 299
+      "keep": true,
+      "reason": "ends 2026-10-03",
+      "lots": 100
     },
     {
       "platform": "Proxibid",
-      "aid": "300100",
-      "title": "DAY 2/3 FRI SEP 18 SE REG. TRUCK-GOVT & FLEET SALE",
-      "seller": "Royal Auction Group, Inc.",
-      "end_date": "2026-09-18",
+      "aid": "300776",
+      "title": "Bounce House Business Liquidation",
+      "seller": "Kincaid Auction Realty, LLC",
+      "end_date": "2026-10-15",
       "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-18 (before 2026-09-27 13:54 ET)",
-      "lots": 378
+      "keep": true,
+      "reason": "ends 2026-10-15",
+      "lots": 16
     },
     {
       "platform": "Proxibid",
-      "aid": "300101",
-      "title": "DAY 3/3 SAT SEP 19 SE REG. VEHICLE GOVT/FLEET SALE",
-      "seller": "Royal Auction Group, Inc.",
-      "end_date": "2026-09-19",
+      "aid": "300978",
+      "title": "Yoder and Frey - Florida Auction",
+      "seller": "Yoder & Frey Auctioneers, LLC",
+      "end_date": "2026-10-15",
       "end_source": "datetime_display (latest date)",
-      "keep": false,
-      "reason": "ended 2026-09-19 (before 2026-09-27 13:54 ET)",
-      "lots": 388
+      "keep": true,
+      "reason": "ends 2026-10-15",
+      "lots": 100
     },
     {
-      "platform": "HiBid",
-      "aid": "772701",
-      "title": "Overstock Product Liquidation Tampa Bay 9/6/2026",
-      "seller": "ATX Auctions Tampa Bay",
-      "end_date": "2026-09-06",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 797
-    },
-    {
-      "platform": "HiBid",
-      "aid": "774470",
-      "title": "#165 Amazon Surplus Closing Monday 10AM!",
-      "seller": "ATX Auctions Tampa",
-      "end_date": "2026-09-07",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 224
-    },
-    {
-      "platform": "HiBid",
-      "aid": "772578",
-      "title": "#624 5 STAR ESTATE TREASURES ONLINE ONLY",
-      "seller": "5 Star Auctioneers",
-      "end_date": "2026-09-07",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 199
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775216",
-      "title": "#166 General Merchandise Closing Thurs 6PM! $5 Starting Bids",
-      "seller": "ATX Auctions Tampa",
-      "end_date": "2026-09-10",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 423
-    },
-    {
-      "platform": "HiBid",
-      "aid": "771208",
-      "title": "ONLINE - 9/12/2026 - NO SHIPPING - LOCAL PICKUP ONLY",
-      "seller": "Ballpark Auctions",
-      "end_date": "2026-09-12",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 368
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775329",
-      "title": "Disney and Dolls",
-      "seller": "Diamond Palm Auctions",
-      "end_date": "2026-09-12",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 217
-    },
-    {
-      "platform": "HiBid",
-      "aid": "771209",
-      "title": "ONLINE - 9/19/2026 - NO SHIPPING - LOCAL PICKUP ONLY",
-      "seller": "Ballpark Auctions",
-      "end_date": "2026-09-19",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 0
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775076",
-      "title": "September Exceptional Estates Auction",
-      "seller": "Blackwell Auctions LLC",
-      "end_date": "2026-09-19",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 288
-    },
-    {
-      "platform": "HiBid",
-      "aid": "775135",
-      "title": "September 20th, 2026 Premiere Auction",
-      "seller": "Burchard Galleries",
-      "end_date": "2026-09-20",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 394
-    },
-    {
-      "platform": "HiBid",
-      "aid": "773737",
-      "title": "TAMPA FL. ROOFING TRUCKS & CONSTRUCTION MATERIAL",
-      "seller": "Urban Auction Company",
-      "end_date": "2026-09-25",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": false,
-      "reason": "HiBid live state: lots isClosed=true",
-      "lots": 3
+      "platform": "Proxibid",
+      "aid": "301177",
+      "title": "10/5 FL PUBLIC EQUIPMENT AUCTION",
+      "seller": "ASI3 LLC",
+      "end_date": "2026-10-05",
+      "end_source": "datetime_display (latest date)",
+      "keep": true,
+      "reason": "ends 2026-10-05",
+      "lots": 100
     }
   ],
-  "lots_kept": [],
   "unknown_end_date": [],
+  "tag_counts": {
+    "Proxibid:299782": {
+      "RC mower": 4
+    },
+    "Proxibid:300978": {
+      "mower": 2,
+      "RC mower": 3
+    },
+    "Proxibid:301177": {
+      "RC mower": 7
+    }
+  },
   "totals": {
-    "map_kept": 1,
-    "map_removed": 21,
-    "lots_kept": 0,
-    "lots_removed": 4318
+    "map_kept": 5,
+    "map_removed": 0,
+    "lots_kept": 316,
+    "lots_removed": 0
   }
 }

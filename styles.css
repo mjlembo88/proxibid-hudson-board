@@ -314,3 +314,10 @@ table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
   border-bottom: 1px solid var(--line);
   font-size: 0.85rem;
 }
+
+/* lot tags + out-of-radius auctions */
+.lot-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.pill.tag-mower { color: #7dd3a8; border-color: rgba(125,211,168,0.5); }
+.pill.tag-rc-mower { color: #f0b45a; border-color: rgba(240,180,90,0.5); }
+.pill.tag-mower-parts { color: var(--muted); }
+.pill.far { color: #ff9b8a; border-color: rgba(255,155,138,0.45); font-size: 0.7rem; margin-top: 4px; display: inline-block; }

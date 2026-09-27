@@ -42,6 +42,7 @@
     lotsNote: document.getElementById("lots-note"),
     q: document.getElementById("f-q"),
     status: document.getElementById("f-status"),
+    tag: document.getElementById("f-tag"),
     min: document.getElementById("f-min"),
     max: document.getElementById("f-max"),
     watched: document.getElementById("f-watched"),
@@ -166,6 +167,10 @@
     if (!iso) return "";
     return String(iso).slice(0, 10);
   }
+  function outOfRadius(a) {
+    const maxMi = Number(els.dist.value) || 50;
+    return a.distance_mi != null && Number(a.distance_mi) > maxMi;
+  }
   function applyAuctionFilters(items) {
     const seller = els.seller.value;
     const platform = els.platform ? els.platform.value : "";
@@ -177,7 +182,8 @@
       if (platform && a.platform !== platform) return false;
       if (seller && a.seller !== seller) return false;
       if (type && String(a.type || "").toLowerCase() !== type.toLowerCase()) return false;
-      if (a.distance_mi != null && Number(a.distance_mi) > maxMi) return false;
+      // always_show auctions (Mark's picks beyond the radius) stay visible and are flagged instead
+      if (a.distance_mi != null && Number(a.distance_mi) > maxMi && !a.always_show) return false;
       const d = dayKey(a.datetime_local);
       if (from && d && d < from) return false;
       if (to && d && d > to) return false;
@@ -247,7 +253,7 @@
         `<td>${escapeHtml(a.seller || "")}</td>` +
         `<td>${escapeHtml(a.datetime_display || a.datetime_local || "")}</td>` +
         `<td class="muted">${escapeHtml(a.location || "")}</td>` +
-        `<td class="dist">${a.distance_mi != null ? Number(a.distance_mi).toFixed(1) : "—"}</td>` +
+        `<td class="dist">${a.distance_mi != null ? Number(a.distance_mi).toFixed(1) : "—"}${outOfRadius(a) ? '<div><span class="pill far" title="' + escapeHtml(a.radius_note || "Beyond radius, shown anyway") + '">beyond ' + (Number(els.dist.value) || 50) + ' mi</span></div>' : ""}</td>` +
         `<td><span class="pill ${typeClass}">${escapeHtml(a.type || "")}</span></td>`;
       tr.querySelector('[data-act="star"]').addEventListener("click", (e) => {
         e.stopPropagation();
@@ -289,6 +295,7 @@
           `<div class="pin-label"><strong>${escapeHtml(a.title || "")}</strong><br>` +
             `${escapeHtml(a.datetime_display || "")}<br>` +
             `${a.distance_mi != null ? a.distance_mi + " mi · " : ""}` +
+            `${outOfRadius(a) ? "beyond radius (shown by request) · " : ""}` +
             `<a href="${escapeHtml(a.url || "#")}" target="_blank" rel="noopener">Open catalog</a></div>`
         )
         .addTo(layer);
@@ -357,7 +364,7 @@
     const radius = (data.filters && data.filters.radius_mi) || 50;
     els.dist.value = String(radius);
     els.subtitle.textContent =
-      `Within ${radius} mi of ${state.origin.address || "Hudson, FL"} · Proxibid + HiBid · watch board only (no bids)`;
+      `Within ${radius} mi of ${state.origin.address || "Hudson, FL"} (plus pinned picks beyond, flagged) · Proxibid + HiBid · watch board only (no bids)`;
     fillSellers(state.all);
   }
 
@@ -528,7 +535,8 @@
       const n = (a.lots && a.lots.length) || a.lot_count || 0;
       const empty = n === 0 ? " — no lots yet" : "";
       opt.textContent =
-        (a.platform || "Proxibid") + ": " + (a.title || a.aid) + " (" + n + ")" + empty;
+        (a.platform || "Proxibid") + ": " + (a.title || a.aid) + " (" + n +
+        (a.lot_count_expected && a.lot_count_expected > n ? " of " + a.lot_count_expected + " parsed" : "") + ")" + empty;
       els.auction.appendChild(opt);
     });
     // note empty HiBid catalogs
@@ -579,6 +587,9 @@
       );
     }
     if (status) items = items.filter((x) => String(x.status || "").toLowerCase() === status);
+    const tag = els.tag ? els.tag.value : "";
+    if (tag === "anymower") items = items.filter((x) => (x.tags || []).some((t) => t === "mower" || t === "RC mower"));
+    else if (tag) items = items.filter((x) => (x.tags || []).includes(tag));
     if (min != null && !Number.isNaN(min)) {
       items = items.filter((x) => x.current_bid != null && Number(x.current_bid) >= min);
     }
@@ -727,8 +738,32 @@
 
       const bid = document.createElement("div");
       bid.className = "lot-card-bid";
-      bid.innerHTML = "<span>Current bid</span><span class=\"money\">" + escapeHtml(fmtMoney(lot.current_bid, lot.currency)) + "</span>";
+      const bidLabel = lot.bid_label || "Current bid";
+      bid.innerHTML = "<span>" + escapeHtml(bidLabel) + "</span><span class=\"money\">" + escapeHtml(fmtMoney(lot.current_bid, lot.currency)) + "</span>";
       body.appendChild(bid);
+      if (lot.closes_at) {
+        const cl = document.createElement("div");
+        cl.className = "lot-card-meta";
+        let when = lot.closes_at;
+        try {
+          when = new Date(lot.closes_at).toLocaleString("en-US", {
+            timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+          }) + " ET";
+        } catch (_) {}
+        cl.textContent = (/live/.test(lot.closes_at_source || "") ? "Live sale starts " : "Closes ") + when;
+        body.appendChild(cl);
+      }
+      if (lot.tags && lot.tags.length) {
+        const tg = document.createElement("div");
+        tg.className = "lot-tags";
+        lot.tags.forEach((t) => {
+          const sp = document.createElement("span");
+          sp.className = "pill tag-" + t.replace(/[^a-z]+/gi, "-").toLowerCase();
+          sp.textContent = t;
+          tg.appendChild(sp);
+        });
+        body.appendChild(tg);
+      }
 
       const actions = document.createElement("div");
       actions.className = "lot-card-actions";
@@ -864,7 +899,7 @@ function exportWatchlist() {
       });
     }
     ["change", "input"].forEach((ev) => {
-      [els.auction, els.lotPlatform, els.q, els.status, els.min, els.max, els.watched, els.hasmax, els.sort].forEach((el) => {
+      [els.auction, els.lotPlatform, els.q, els.status, els.tag, els.min, els.max, els.watched, els.hasmax, els.sort].forEach((el) => {
         if (el) el.addEventListener(ev, bump);
       });
     });
@@ -873,6 +908,7 @@ function exportWatchlist() {
       if (els.lotPlatform) els.lotPlatform.value = "";
       els.q.value = "";
       els.status.value = "";
+      if (els.tag) els.tag.value = "";
       els.min.value = "";
       els.max.value = "";
       els.watched.checked = false;

@@ -20,6 +20,8 @@ Expiry filter (runs on every build):
     confirmed open (checked within the last 24h) -> keep.
   * Auctions with no end date: kept unless confirmed closed, and logged in build-info.json + stdout.
   * Individual lots whose `status` is closed/sold/passed/ended are dropped too.
+  * Every kept lot gets `tags` from lot_tags(): "mower" (riding / zero-turn / stand-on / lawn tractor),
+    "RC mower" (remote-control / crawler / robotic), "mower parts"; counts go to build-info.json tag_counts.
   * Map markers (auctions.json, hibid-auctions.json, and the fallback copy embedded in index.html)
     and lot catalogs (lots.json, hibid-lots.json) are filtered with the same rule.
 
@@ -133,6 +135,41 @@ def hibid_live_state(aid):
         "eventDateEnd": (res[0].get("auction") or {}).get("eventDateEnd") if res else None,
     }
 
+# ------------------------------------------------------------------ lot tags (keyword rules on title + start of description)
+# "mower": riding / zero-turn / stand-on / lawn & garden tractors. "RC mower": remote-control / crawler / robotic
+# mowers. "mower parts": decks, blades, belts etc. sold without the machine. Toys/models are never tagged.
+_MOW = r"mow(?:er|ing)?"
+_RC = re.compile(r"remote[- ]?control(?:led)?|\bRC\b|radio[- ]control|crawler|robotic|robot|slope mower|"
+                 r"\bSDLOOL\b.*\b(?:SL-)?LM\d{3,4}Q?\b|\b(?:SL-)?LM\d{3,4}Q\b|\begn\b.*\bEG\d{3}\b", re.I)
+_RIDING = re.compile(r"zero[- ]?turn|\bZTR\b|\bz[- ]?turn\b|stand[- ]?on|\bstander\b|riding (?:lawn )?mower|"
+                     r"ride[- ]on (?:lawn )?mower|lawn tractor|garden tractor|yard tractor|\bZTrak\b|time ?cutter|"
+                     r"z[- ]?master|lazer z|turf tiger|tiger cat|\bscag\b.*\b(?:patriot|freedom|cheetah|v-ride)\b|"
+                     r"\bhustler\b.*\b(?:raptor|super z|fastrak|x-one)\b|\bbad boy\b.*" + _MOW + r"|"
+                     r"\bkubota\s+Z\d{3}|\bjohn deere\s+(?:Z\d{3}[A-Z]?|X\d{3}|[DES]1\d{2}|L[ATX]\d{3})\b|"
+                     r"\bcub cadet\b.*\b(?:ZT\d|XT\d|LTX)|\bhusqvarna\s+(?:MZ|Z2|YTH?|TS)\d|"
+                     r"\bgravely\b.*\b(?:ZT|pro-?turn)|\bferris\b.*\b(?:IS|ISX)\s?\d|\bgrasshopper\b.*" + _MOW + r"|"
+                     r"\bwalker\b.*" + _MOW + r"|\bwright\b.*stand", re.I)
+_PARTS = re.compile(_MOW + r"\s+(?:deck|blades?|belts?|spindles?|parts?|tires?|seat|cover)|"
+                    r"\b(?:deck|blades?|belts?|spindles?)\b.*\bfor\b.*" + _MOW, re.I)
+_TOY = re.compile(r"\b(?:toys?|die-?cast|diecast|replica|ertl|1:\d+|1/\d+|scale model|figurine|ornament|decal|sticker|sign)\b", re.I)
+
+def lot_tags(lot):
+    title = str(lot.get("title") or "")
+    head = str(lot.get("description") or "")[:300]
+    full = title + " " + head
+    if _TOY.search(title) or not (re.search(_MOW + r"|zero[- ]?turn|\bZTR\b|ZTrak", full, re.I) or _RIDING.search(title)):
+        return []
+    has_mow = re.search(_MOW + r"|zero[- ]?turn|\bZTR\b|ZTrak", full, re.I) or _RIDING.search(title)
+    if has_mow and _RC.search(full):
+        return ["RC mower"]
+    if _RIDING.search(title) or (has_mow and _RIDING.search(head)):
+        if _PARTS.search(title):
+            return ["mower parts"]
+        return ["mower"]
+    if has_mow and _PARTS.search(title):
+        return ["mower parts"]
+    return []
+
 # ------------------------------------------------------------------ io helpers
 def load(path, default=None):
     if not os.path.exists(path):
@@ -152,7 +189,10 @@ def merge_incoming(base_list, key, pattern, src):
     by = {str(x.get(key)): x for x in base_list}
     added = []
     for p in sorted(glob.glob(os.path.join(src, "incoming", pattern))):
-        for x in (load(p, {}) or {}).get("auctions") or []:
+        doc = load(p, {}) or {}
+        if doc.get("scraped_at"):
+            added.append(("scraped_at", doc["scraped_at"]))
+        for x in doc.get("auctions") or []:
             by[str(x.get(key))] = x
             added.append((os.path.basename(p), str(x.get(key))))
     return list(by.values()), added
@@ -183,6 +223,11 @@ def main():
     for doc, key, pat in ((px_auc, "id", "proxibid-auctions-*.json"), (px_lots, "aid", "proxibid-lots-*.json"),
                           (hb_auc, "id", "hibid-auctions-*.json"), (hb_lots, "aid", "hibid-lots-*.json")):
         doc["auctions"], added = merge_incoming(doc.get("auctions") or [], key, pat, src)
+        stamps = [v for k, v in added if k == "scraped_at"]
+        added = [(k, v) for k, v in added if k != "scraped_at"]
+        if stamps:  # show the newest data time in the UI's "scraped" label
+            doc["scraped_at"] = max(stamps + ([doc["scraped_at"]] if doc.get("scraped_at") else []),
+                                    key=lambda t: dt.datetime.fromisoformat(t.replace("Z", "+00:00")))
         incoming += added
 
     # Metadata used to date lot catalogs: map entries first, catalog fields as fallback.
@@ -236,7 +281,7 @@ def main():
         return rec
 
     report = {"built_at": now.isoformat(timespec="seconds"), "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
-              "incoming_merged": incoming, "map_removed": [], "map_kept": [], "lots_removed": [], "lots_kept": [], "unknown_end_date": []}
+              "incoming_merged": incoming, "map_removed": [], "map_kept": [], "lots_removed": [], "lots_kept": [], "unknown_end_date": [], "tag_counts": {}}
 
     for platform, doc in (("Proxibid", px_auc), ("HiBid", hb_auc)):
         kept = []
@@ -257,6 +302,11 @@ def main():
             live_lots = [l for l in lots if str(l.get("status") or "").lower() not in CLOSED_LOT_STATUS]
             if len(live_lots) != len(lots):
                 report["lots_removed"].append(dict(r, lots=len(lots) - len(live_lots), reason="lot status closed/sold/passed"))
+            for l in live_lots:
+                l["tags"] = lot_tags(l)
+                for t in l["tags"]:
+                    report["tag_counts"].setdefault(f"{platform}:{a['aid']}", {}).setdefault(t, 0)
+                    report["tag_counts"][f"{platform}:{a['aid']}"][t] += 1
             a["lots"] = live_lots
             a["lot_count"] = len(live_lots)
             kept.append(a)
@@ -291,6 +341,7 @@ def main():
         print(f"  lots + {r['platform']:8} {r['aid']} {r['lots']} end={r['end_date']}")
     for r in report["unknown_end_date"]:
         print(f"  WARN unknown end date: {r['platform']} {r['aid']} -> {r['reason']}")
+    print("tags", json.dumps(report["tag_counts"]))
     print("totals", json.dumps(report["totals"]))
     if args.dry_run:
         return
