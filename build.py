@@ -141,7 +141,7 @@ def hibid_live_state(aid):
 #   "walk-behind mower" commercial walk-behinds (JD 632M/636M/648M, "pedestrian"/walk-behind + commercial brand,
 #                       hydro, zero-turn or a 32"+ deck). Consumer push / self-propelled mowers get nothing.
 #   "RC mower"          remote-control / crawler / robotic mowers (explicit words, or the LM1000Q/LM1200Q
-#                       crawler-mower model family sold as SDLOOL SL-LMxxxxQ / Captok CK-LMxxxxQ, or egn EGxxx)
+#                       crawler-mower model family sold as SDLOOL SL-LMxxxxQ / Captok CK-LMxxxxQ / CK800, or egn EGxxx)
 #   "tractor + mower"   farm/utility tractors sold with a mower deck, rotary cutter, bush hog, finish mower,
 #                       flail mower or Land Pride RCF/RCR cutter
 #   "mower parts"       decks, blades, belts etc. sold without the machine
@@ -159,7 +159,7 @@ _TRACTOR = re.compile(r"(?<!lawn )(?<!garden )(?<!yard )\btractors?\b", re.I)
 _TRACTOR_IMPL = re.compile(r"mower deck|rotary cutter|bush ?hog|finish(?:ing)? mower|flail mower|brush cutter|"
                            r"\bRC[FR]\d{3,4}\b|land ?pride|with (?:a )?mower|w/ ?mower|\bmower\b", re.I)
 _RC = re.compile(r"remote[- ]?control(?:led)?|\bRC\b|radio[- ]control|crawler|robotic|automower|slope mower", re.I)
-_RC_MODEL = re.compile(r"\b(?:SL-|CK-)?LM1[02]00Q\b|\begn\b.{0,40}\bEG\d{3}\b", re.I)
+_RC_MODEL = re.compile(r"\b(?:SL-|CK-)?LM1[02]00Q\b|\bCaptok\b.{0,40}\bCK-?800\b|\bCK-?800\b.{0,40}\bmower\b|\begn\b.{0,40}\bEG\d{3}\b", re.I)
 _STAND_ON = re.compile(r"stand[- ]?on\b[^,;]{0,25}" + _MOW + r"|quik ?trak|grandstand|\bstander\b|\bstaris\b|v-ride", re.I)
 _WALK = re.compile(r"walk[- ]?behind|pedestrian|\bhydro[- ]?walk", re.I)
 _WALK_MODEL = re.compile(r"\bjohn deere\s+6[34]\dM?\b|\bJD\s*6[34]\dM\b|turf tracer|\bexmark\s+(?:viking|metro)|\bscag\s+SWZ?U?\d", re.I)
