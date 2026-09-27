@@ -320,4 +320,6 @@ table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .pill.tag-mower { color: #7dd3a8; border-color: rgba(125,211,168,0.5); }
 .pill.tag-rc-mower { color: #f0b45a; border-color: rgba(240,180,90,0.5); }
 .pill.tag-mower-parts { color: var(--muted); }
+.pill.tag-walk-behind-mower { color: #8fd3ff; border-color: rgba(143,211,255,0.5); }
+.pill.tag-tractor-mower { color: #e6d36e; border-color: rgba(230,211,110,0.5); }
 .pill.far { color: #ff9b8a; border-color: rgba(255,155,138,0.45); font-size: 0.7rem; margin-top: 4px; display: inline-block; }

@@ -21,7 +21,7 @@ Expiry filter (runs on every build):
   * Auctions with no end date: kept unless confirmed closed, and logged in build-info.json + stdout.
   * Individual lots whose `status` is closed/sold/passed/ended are dropped too.
   * Every kept lot gets `tags` from lot_tags(): "mower" (riding / zero-turn / stand-on / lawn tractor),
-    "RC mower" (remote-control / crawler / robotic), "mower parts"; counts go to build-info.json tag_counts.
+    "walk-behind mower", "RC mower", "tractor + mower", "mower parts"; counts go to build-info.json tag_counts.
   * Map markers (auctions.json, hibid-auctions.json, and the fallback copy embedded in index.html)
     and lot catalogs (lots.json, hibid-lots.json) are filtered with the same rule.
 
@@ -136,39 +136,68 @@ def hibid_live_state(aid):
     }
 
 # ------------------------------------------------------------------ lot tags (keyword rules on title + start of description)
-# "mower": riding / zero-turn / stand-on / lawn & garden tractors. "RC mower": remote-control / crawler / robotic
-# mowers. "mower parts": decks, blades, belts etc. sold without the machine. Toys/models are never tagged.
-_MOW = r"mow(?:er|ing)?"
-_RC = re.compile(r"remote[- ]?control(?:led)?|\bRC\b|radio[- ]control|crawler|robotic|robot|slope mower|"
-                 r"\bSDLOOL\b.*\b(?:SL-)?LM\d{3,4}Q?\b|\b(?:SL-)?LM\d{3,4}Q\b|\begn\b.*\bEG\d{3}\b", re.I)
-_RIDING = re.compile(r"zero[- ]?turn|\bZTR\b|\bz[- ]?turn\b|stand[- ]?on|\bstander\b|riding (?:lawn )?mower|"
-                     r"ride[- ]on (?:lawn )?mower|lawn tractor|garden tractor|yard tractor|\bZTrak\b|time ?cutter|"
-                     r"z[- ]?master|lazer z|turf tiger|tiger cat|\bscag\b.*\b(?:patriot|freedom|cheetah|v-ride)\b|"
-                     r"\bhustler\b.*\b(?:raptor|super z|fastrak|x-one)\b|\bbad boy\b.*" + _MOW + r"|"
-                     r"\bkubota\s+Z\d{3}|\bjohn deere\s+(?:Z\d{3}[A-Z]?|X\d{3}|[DES]1\d{2}|L[ATX]\d{3})\b|"
-                     r"\bcub cadet\b.*\b(?:ZT\d|XT\d|LTX)|\bhusqvarna\s+(?:MZ|Z2|YTH?|TS)\d|"
-                     r"\bgravely\b.*\b(?:ZT|pro-?turn)|\bferris\b.*\b(?:IS|ISX)\s?\d|\bgrasshopper\b.*" + _MOW + r"|"
-                     r"\bwalker\b.*" + _MOW + r"|\bwright\b.*stand", re.I)
+# Tags (at most one per lot):
+#   "mower"             riding / zero-turn / stand-on mowers, lawn & garden tractors
+#   "walk-behind mower" commercial walk-behinds (JD 632M/636M/648M, "pedestrian"/walk-behind + commercial brand,
+#                       hydro, zero-turn or a 32"+ deck). Consumer push / self-propelled mowers get nothing.
+#   "RC mower"          remote-control / crawler / robotic mowers (explicit words, or the LM1000Q/LM1200Q
+#                       crawler-mower model family sold as SDLOOL SL-LMxxxxQ / Captok CK-LMxxxxQ, or egn EGxxx)
+#   "tractor + mower"   farm/utility tractors sold with a mower deck, rotary cutter, bush hog, finish mower,
+#                       flail mower or Land Pride RCF/RCR cutter
+#   "mower parts"       decks, blades, belts etc. sold without the machine
+# Never tagged: toys/models; skid steers, track/wheel loaders, backhoes, excavators, dozers, dumpers, mulchers,
+# golf carts etc. (even with a brand/model match or "stand on" in the title). A plain "loader" only blocks
+# tags other than "tractor + mower" (tractors with a front loader and a mower deck still count).
+_MOW = r"mow(?:er|ers|ing)?"
+_MOWISH = re.compile(_MOW + r"|zero[- ]?turn|\bZTR\b|ZTrak|quik ?trak", re.I)
+_TOY = re.compile(r"\b(?:toys?|die-?cast|diecast|replica|ertl|1:\d+|1/\d+|scale model|figurine|ornament|decal|sticker|sign)\b", re.I)
+_NEVER = re.compile(r"skid[- ]?steer|skidsteer|skid loader|track(?:ed)? loader|wheel(?:ed)? loader|compact track|"
+                    r"backhoe|excavator|dozer|dumper|mulcher|compactor|tamper|trencher|golf cart|forklift|telehandler|"
+                    r"\bUTV\b|\bRTV\b|to suit (?:a )?skid", re.I)
+_LOADER = re.compile(r"\bloaders?\b", re.I)
+_TRACTOR = re.compile(r"(?<!lawn )(?<!garden )(?<!yard )\btractors?\b", re.I)
+_TRACTOR_IMPL = re.compile(r"mower deck|rotary cutter|bush ?hog|finish(?:ing)? mower|flail mower|brush cutter|"
+                           r"\bRC[FR]\d{3,4}\b|land ?pride|with (?:a )?mower|w/ ?mower|\bmower\b", re.I)
+_RC = re.compile(r"remote[- ]?control(?:led)?|\bRC\b|radio[- ]control|crawler|robotic|automower|slope mower", re.I)
+_RC_MODEL = re.compile(r"\b(?:SL-|CK-)?LM1[02]00Q\b|\begn\b.{0,40}\bEG\d{3}\b", re.I)
+_STAND_ON = re.compile(r"stand[- ]?on\b[^,;]{0,25}" + _MOW + r"|quik ?trak|grandstand|\bstander\b|\bstaris\b|v-ride", re.I)
+_WALK = re.compile(r"walk[- ]?behind|pedestrian|\bhydro[- ]?walk", re.I)
+_WALK_MODEL = re.compile(r"\bjohn deere\s+6[34]\dM?\b|\bJD\s*6[34]\dM\b|turf tracer|\bexmark\s+(?:viking|metro)|\bscag\s+SWZ?U?\d", re.I)
+_COMMERCIAL = re.compile(r"john deere|exmark|scag|toro|ferris|wright|bobcat|gravely|hustler|kubota|snapper pro|"
+                         r"bad boy|zero[- ]?turn|hydro(?:static)?|commercial|\b(?:3[2-9]|[4-6]\d)\s*(?:\"|”|in\b|inch)", re.I)
+_RIDING = re.compile(r"zero[- ]?turn|\bZTR\b|\bz[- ]?turn\b|riding (?:lawn )?mower|ride[- ]on (?:lawn )?mower|"
+                     r"lawn tractor|garden tractor|yard tractor|\bZTrak\b|time ?cutter|z[- ]?master|lazer z|turf tiger|"
+                     r"tiger cat|\bscag\b.*\b(?:patriot|freedom|cheetah)\b|\bhustler\b.*\b(?:raptor|super z|fastrak|x-one)\b|"
+                     r"\bbad boy\b.*" + _MOW + r"|\bkubota\s+Z[G]?\d{3}|\bjohn deere\s+(?:Z\d{3}[A-Z]?|X\d{3}|[DES]1\d{2}|L[ATX]\d{3})\b|"
+                     r"\bcub cadet\b.*\b(?:ZT\d|XT\d|LTX)|\bhusqvarna\s+(?:MZ|Z2|YTH?|TS)\d|\bgravely\b.*\b(?:ZT|pro-?turn)|"
+                     r"\bferris\b.*\b(?:IS|ISX)\s?\d|\bgrasshopper\b.*" + _MOW + r"|\bwalker\b.*" + _MOW, re.I)
 _PARTS = re.compile(_MOW + r"\s+(?:deck|blades?|belts?|spindles?|parts?|tires?|seat|cover)|"
                     r"\b(?:deck|blades?|belts?|spindles?)\b.*\bfor\b.*" + _MOW, re.I)
-_TOY = re.compile(r"\b(?:toys?|die-?cast|diecast|replica|ertl|1:\d+|1/\d+|scale model|figurine|ornament|decal|sticker|sign)\b", re.I)
 
 def lot_tags(lot):
     title = str(lot.get("title") or "")
     head = str(lot.get("description") or "")[:300]
     full = title + " " + head
-    if _TOY.search(title) or not (re.search(_MOW + r"|zero[- ]?turn|\bZTR\b|ZTrak", full, re.I) or _RIDING.search(title)):
+    if _TOY.search(title) or _NEVER.search(full):
         return []
-    has_mow = re.search(_MOW + r"|zero[- ]?turn|\bZTR\b|ZTrak", full, re.I) or _RIDING.search(title)
-    if has_mow and _RC.search(full):
+    if _TRACTOR.search(full) and _TRACTOR_IMPL.search(full) and not _RIDING.search(title):
+        return ["tractor + mower"]
+    if _LOADER.search(full):
+        return []
+    if not (_MOWISH.search(full) or _RIDING.search(title) or _STAND_ON.search(title) or _WALK_MODEL.search(title)):
+        return []
+    if _MOWISH.search(full) and (_RC.search(full) or _RC_MODEL.search(title)):
         return ["RC mower"]
-    if _RIDING.search(title) or (has_mow and _RIDING.search(head)):
-        if _PARTS.search(title):
-            return ["mower parts"]
-        return ["mower"]
-    if has_mow and _PARTS.search(title):
+    if _PARTS.search(title):
         return ["mower parts"]
+    if _STAND_ON.search(full):
+        return ["mower"]
+    if _WALK_MODEL.search(title) or _WALK.search(full):
+        return ["walk-behind mower"] if (_WALK_MODEL.search(title) or _COMMERCIAL.search(full)) else []
+    if _RIDING.search(title) or (_MOWISH.search(full) and _RIDING.search(head)):
+        return ["mower"]
     return []
+
 
 # ------------------------------------------------------------------ io helpers
 def load(path, default=None):

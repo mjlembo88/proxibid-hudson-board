@@ -50,5 +50,6 @@ unless confirmed closed and are logged in `build-info.json`. New catalogs can be
 `python3 /workspace/proxibid/scripts/parse_proxibid_catalogs.py` (never fetches proxibid.com).
 
 Lot tags (build time, keyword rules in `build.py` `lot_tags`): `mower` (riding / zero-turn / stand-on /
-lawn tractor), `RC mower` (remote-control / crawler / robotic), `mower parts`. Lots tab → **Tag** filter.
+lawn tractor), `walk-behind mower` (commercial walk-behinds), `RC mower` (remote-control / crawler / robotic),
+`tractor + mower` (tractor sold with deck / rotary cutter / bush hog), `mower parts`. Skid steers / loaders never get a mower tag. Lots tab → **Tag** filter.
 Auctions flagged `always_show` (Mark's picks beyond 50 mi) stay on the map and are marked "beyond N mi".

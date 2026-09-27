@@ -588,7 +588,8 @@
     }
     if (status) items = items.filter((x) => String(x.status || "").toLowerCase() === status);
     const tag = els.tag ? els.tag.value : "";
-    if (tag === "anymower") items = items.filter((x) => (x.tags || []).some((t) => t === "mower" || t === "RC mower"));
+    const ANY_MOWER = ["mower", "walk-behind mower", "RC mower", "tractor + mower"];
+    if (tag === "anymower") items = items.filter((x) => (x.tags || []).some((t) => ANY_MOWER.includes(t)));
     else if (tag) items = items.filter((x) => (x.tags || []).includes(tag));
     if (min != null && !Number.isNaN(min)) {
       items = items.filter((x) => x.current_bid != null && Number(x.current_bid) >= min);

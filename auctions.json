@@ -89,6 +89,6 @@
       "source": "saved Catalog.asp HTML (new-catalogs/)"
     }
   ],
-  "built_at": "2026-09-27T14:22:14-04:00",
+  "built_at": "2026-09-27T14:24:11-04:00",
   "expiry_filter": "auctions/lots whose end date is before build time (ET) removed at build; see build-info.json"
 }

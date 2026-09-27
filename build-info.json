@@ -1,5 +1,5 @@
 {
-  "built_at": "2026-09-27T14:22:14-04:00",
+  "built_at": "2026-09-27T14:24:11-04:00",
   "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
   "incoming_merged": [
     [
@@ -138,15 +138,16 @@
   "unknown_end_date": [],
   "tag_counts": {
     "Proxibid:299782": {
-      "RC mower": 4
+      "RC mower": 4,
+      "tractor + mower": 1
     },
     "Proxibid:300978": {
-      "mower": 9,
-      "RC mower": 3
+      "mower": 7,
+      "RC mower": 3,
+      "walk-behind mower": 2
     },
     "Proxibid:301177": {
-      "RC mower": 7,
-      "mower": 10
+      "RC mower": 7
     }
   },
   "totals": {
