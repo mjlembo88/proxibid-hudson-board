@@ -1,14 +1,10 @@
 {
-  "built_at": "2026-09-27T19:26:23-04:00",
+  "built_at": "2026-09-27T20:55:35-04:00",
   "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
   "incoming_merged": [
     [
       "proxibid-auctions-299782.json",
       "299782"
-    ],
-    [
-      "proxibid-auctions-300776.json",
-      "300776"
     ],
     [
       "proxibid-auctions-300978.json",
@@ -21,10 +17,6 @@
     [
       "proxibid-lots-299782.json",
       "299782"
-    ],
-    [
-      "proxibid-lots-300776.json",
-      "300776"
     ],
     [
       "proxibid-lots-300978.json",
@@ -46,16 +38,6 @@
       "end_source": "datetime_display (latest date)",
       "keep": true,
       "reason": "ends 2026-10-03"
-    },
-    {
-      "platform": "Proxibid",
-      "aid": "300776",
-      "title": "Bounce House Business Liquidation",
-      "seller": "Kincaid Auction Realty, LLC",
-      "end_date": "2026-10-15",
-      "end_source": "datetime_display (latest date)",
-      "keep": true,
-      "reason": "ends 2026-10-15"
     },
     {
       "platform": "Proxibid",
@@ -103,17 +85,6 @@
     },
     {
       "platform": "Proxibid",
-      "aid": "300776",
-      "title": "Bounce House Business Liquidation",
-      "seller": "Kincaid Auction Realty, LLC",
-      "end_date": "2026-10-15",
-      "end_source": "datetime_display (latest date)",
-      "keep": true,
-      "reason": "ends 2026-10-15",
-      "lots": 16
-    },
-    {
-      "platform": "Proxibid",
       "aid": "300978",
       "title": "Yoder and Frey - Florida Auction",
       "seller": "Yoder & Frey Auctioneers, LLC",
@@ -151,9 +122,9 @@
     }
   },
   "totals": {
-    "map_kept": 5,
+    "map_kept": 4,
     "map_removed": 0,
-    "lots_kept": 1131,
+    "lots_kept": 1115,
     "lots_removed": 0
   }
 }
