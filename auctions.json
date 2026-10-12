@@ -18,24 +18,6 @@
   "excluded_note": "Next closest was Lakeland ~51.4 mi — excluded",
   "auctions": [
     {
-      "id": "299782",
-      "title": "GOVERNMENT SURPLUS AND MORE",
-      "seller": "Central Florida Auction",
-      "datetime_local": "2026-10-03T09:00:00-04:00",
-      "datetime_display": "Oct 3, 2026, 9:00 AM Eastern",
-      "location": "4445 US Highway 17 West, Haines City, FL 33844",
-      "distance_mi": 63.8,
-      "type": "Live",
-      "url": "https://www.proxibid.com/asp/Catalog.asp?aid=299782",
-      "within_50mi": false,
-      "always_show": true,
-      "radius_note": "63.8 mi — beyond 50 mi, shown at Mark's request",
-      "lat": 28.1065195,
-      "lon": -81.6388972,
-      "geocode_source": "Nominatim street-level (US 17/92, Haines City); house # not matched",
-      "source": "saved Catalog.asp HTML (new-catalogs/)"
-    },
-    {
       "id": "300978",
       "title": "Yoder and Frey - Florida Auction",
       "seller": "Yoder & Frey Auctioneers, LLC",
@@ -52,25 +34,8 @@
       "lon": -81.4092598,
       "geocode_source": "Nominatim street-level (W Southport Rd, 34746); house # not matched",
       "source": "saved Catalog.asp HTML (new-catalogs/)"
-    },
-    {
-      "id": "301177",
-      "title": "10/5 FL PUBLIC EQUIPMENT AUCTION",
-      "seller": "ASI3 LLC",
-      "datetime_local": "2026-10-05T10:00:00-04:00",
-      "datetime_display": "Lots start closing Oct 5, 2026, 10:00 AM Eastern",
-      "location": "13506 Prestige Place, Tampa, FL 33635",
-      "distance_mi": 23.0,
-      "type": "Timed",
-      "url": "https://www.proxibid.com/asp/Catalog.asp?aid=301177",
-      "within_50mi": true,
-      "always_show": true,
-      "lat": 28.0339865,
-      "lon": -82.6403427,
-      "geocode_source": "US Census geocoder (address match)",
-      "source": "saved Catalog.asp HTML (new-catalogs/)"
     }
   ],
-  "built_at": "2026-09-27T20:55:35-04:00",
+  "built_at": "2026-10-12T18:47:14-04:00",
   "expiry_filter": "auctions/lots whose end date is before build time (ET) removed at build; see build-info.json"
 }

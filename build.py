@@ -21,7 +21,8 @@ Expiry filter (runs on every build):
   * Auctions with no end date: kept unless confirmed closed, and logged in build-info.json + stdout.
   * Individual lots whose `status` is closed/sold/passed/ended are dropped too.
   * Every kept lot gets `tags` from lot_tags(): "mower" (riding / zero-turn / stand-on / lawn tractor),
-    "walk-behind mower", "RC mower", "tractor + mower", "mower parts"; counts go to build-info.json tag_counts.
+    "walk-behind mower", "RC mower", "tractor + mower", "mower parts"; truck lots (incoming/hibid-lots-trucks.json from scripts/truck_search.py)
+    keep their `truck_tags`: "diesel HD truck", "older GM HD (~13k)"; counts go to build-info.json tag_counts.
   * Map markers (auctions.json, hibid-auctions.json, and the fallback copy embedded in index.html)
     and lot catalogs (lots.json, hibid-lots.json) are filtered with the same rule.
 
@@ -175,6 +176,9 @@ _PARTS = re.compile(_MOW + r"\s+(?:deck|blades?|belts?|spindles?|parts?|tires?|s
                     r"\b(?:deck|blades?|belts?|spindles?)\b.*\bfor\b.*" + _MOW, re.I)
 
 def lot_tags(lot):
+    # Truck lots from scripts/truck_search.py carry their own tags ("diesel HD truck" / "older GM HD (~13k)").
+    if lot.get("truck_tags"):
+        return list(lot["truck_tags"])
     title = str(lot.get("title") or "")
     head = str(lot.get("description") or "")[:300]
     full = title + " " + head

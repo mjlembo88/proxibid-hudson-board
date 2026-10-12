@@ -1,5 +1,5 @@
 {
-  "built_at": "2026-09-27T20:55:35-04:00",
+  "built_at": "2026-10-12T18:47:14-04:00",
   "rule": "drop auction if 23:59:59 ET of its end date < build time; drop lots of dropped auctions and lots with closed status; unknown end date kept unless HiBid live state says closed",
   "incoming_merged": [
     [
@@ -25,10 +25,13 @@
     [
       "proxibid-lots-301177.json",
       "301177"
+    ],
+    [
+      "hibid-lots-trucks.json",
+      "785128"
     ]
   ],
-  "map_removed": [],
-  "map_kept": [
+  "map_removed": [
     {
       "platform": "Proxibid",
       "aid": "299782",
@@ -36,9 +39,31 @@
       "seller": "Central Florida Auction",
       "end_date": "2026-10-03",
       "end_source": "datetime_display (latest date)",
-      "keep": true,
-      "reason": "ends 2026-10-03"
+      "keep": false,
+      "reason": "ended 2026-10-03 (before 2026-10-12 18:47 ET)"
     },
+    {
+      "platform": "Proxibid",
+      "aid": "301177",
+      "title": "10/5 FL PUBLIC EQUIPMENT AUCTION",
+      "seller": "ASI3 LLC",
+      "end_date": "2026-10-05",
+      "end_source": "datetime_display (latest date)",
+      "keep": false,
+      "reason": "ended 2026-10-05 (before 2026-10-12 18:47 ET)"
+    },
+    {
+      "platform": "HiBid",
+      "aid": "773227",
+      "title": "Medical and Surgical Equipment Auction FL 2609",
+      "seller": "Big Medical Auction House LLC",
+      "end_date": "2026-09-30",
+      "end_source": "hibid-live-state eventDateEnd",
+      "keep": false,
+      "reason": "ended 2026-09-30 (before 2026-10-12 18:47 ET)"
+    }
+  ],
+  "map_kept": [
     {
       "platform": "Proxibid",
       "aid": "300978",
@@ -48,6 +73,19 @@
       "end_source": "datetime_display (latest date)",
       "keep": true,
       "reason": "ends 2026-10-15"
+    }
+  ],
+  "lots_removed": [
+    {
+      "platform": "Proxibid",
+      "aid": "299782",
+      "title": "GOVERNMENT SURPLUS AND MORE",
+      "seller": "Central Florida Auction",
+      "end_date": "2026-10-03",
+      "end_source": "datetime_display (latest date)",
+      "keep": false,
+      "reason": "ended 2026-10-03 (before 2026-10-12 18:47 ET)",
+      "lots": 407
     },
     {
       "platform": "Proxibid",
@@ -56,33 +94,12 @@
       "seller": "ASI3 LLC",
       "end_date": "2026-10-05",
       "end_source": "datetime_display (latest date)",
-      "keep": true,
-      "reason": "ends 2026-10-05"
-    },
-    {
-      "platform": "HiBid",
-      "aid": "773227",
-      "title": "Medical and Surgical Equipment Auction FL 2609",
-      "seller": "Big Medical Auction House LLC",
-      "end_date": "2026-09-30",
-      "end_source": "hibid-live-state eventDateEnd",
-      "keep": true,
-      "reason": "HiBid live state: lots open (checked 2026-09-27T13:51:36-04:00)"
+      "keep": false,
+      "reason": "ended 2026-10-05 (before 2026-10-12 18:47 ET)",
+      "lots": 389
     }
   ],
-  "lots_removed": [],
   "lots_kept": [
-    {
-      "platform": "Proxibid",
-      "aid": "299782",
-      "title": "GOVERNMENT SURPLUS AND MORE",
-      "seller": "Central Florida Auction",
-      "end_date": "2026-10-03",
-      "end_source": "datetime_display (latest date)",
-      "keep": true,
-      "reason": "ends 2026-10-03",
-      "lots": 407
-    },
     {
       "platform": "Proxibid",
       "aid": "300978",
@@ -95,36 +112,32 @@
       "lots": 319
     },
     {
-      "platform": "Proxibid",
-      "aid": "301177",
-      "title": "10/5 FL PUBLIC EQUIPMENT AUCTION",
-      "seller": "ASI3 LLC",
-      "end_date": "2026-10-05",
-      "end_source": "datetime_display (latest date)",
+      "platform": "HiBid",
+      "aid": "785128",
+      "title": "BANK CREDIT UNION REPOS & ESTATE LIQUIDATION OCT",
+      "seller": "Southeastern Credit Union Solutions LLC",
+      "end_date": "2026-10-27",
+      "end_source": "end_local",
       "keep": true,
-      "reason": "ends 2026-10-05",
-      "lots": 389
+      "reason": "ends 2026-10-27",
+      "lots": 1
     }
   ],
   "unknown_end_date": [],
   "tag_counts": {
-    "Proxibid:299782": {
-      "RC mower": 4,
-      "tractor + mower": 1
-    },
     "Proxibid:300978": {
       "mower": 7,
       "RC mower": 5,
       "walk-behind mower": 2
     },
-    "Proxibid:301177": {
-      "RC mower": 7
+    "HiBid:785128": {
+      "diesel HD truck": 1
     }
   },
   "totals": {
-    "map_kept": 4,
-    "map_removed": 0,
-    "lots_kept": 1115,
-    "lots_removed": 0
+    "map_kept": 1,
+    "map_removed": 3,
+    "lots_kept": 320,
+    "lots_removed": 796
   }
 }
